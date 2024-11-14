@@ -7,11 +7,12 @@
 
     <!-- Search bar and button container -->
     <LinearLayout
+        android:id="@+id/search_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="16dp"
-        android:background="#E0E0E0">
+        android:background="#1a7a1a">
 
         <EditText
             android:id="@+id/location_search"
@@ -19,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="Enter location"
-            android:background="@android:drawable/edit_text" />
+            android:background="@android:drawable/edit_text"/>
 
         <Button
             android:id="@+id/search_button"
@@ -28,10 +29,17 @@
             android:text="Search" />
     </LinearLayout>
 
-    <!-- MapView to display the map -->
-    <com.here.sdk.mapview.MapView
-        android:id="@+id/map_view"
+    <LinearLayout
+        android:id="@+id/map_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="56dp" />
+        android:orientation="vertical"
+        android:layout_marginTop="80dp">
+        <!-- MapView to display the map -->
+        <com.here.sdk.mapview.MapView
+            android:id="@+id/map_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </LinearLayout>
+
 </FrameLayout>

@@ -128,16 +128,6 @@ public class MapFragment extends Fragment {
         mapView.onResume();
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mapView.onDestroy();
-        if (locationManager != null) {
-            locationManager.removeUpdates((LocationListener) this);
-        }
-        disposeHERESDK();
-    }
-
     private void disposeHERESDK() {
         SDKNativeEngine sdkNativeEngine = SDKNativeEngine.getSharedInstance();
         if (sdkNativeEngine != null) {
