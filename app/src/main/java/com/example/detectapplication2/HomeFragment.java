@@ -1,64 +1,109 @@
 package com.example.detectapplication2;
 
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+import androidx.fragment.app.Fragment;
+import org.json.JSONObject;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link HomeFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class HomeFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private ImageView image1, image2;
+    private TextView temperatureText, humidityText, conditionText;
+    private EditText cityInput;
+    private Button searchButton;
+    private final String API_KEY = "90ec80953b809a18c31b89f696cf4b76";
 
     public HomeFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment HomeFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static HomeFragment newInstance(String param1, String param2) {
-        HomeFragment fragment = new HomeFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_home, container, false);
+        View view = inflater.inflate(R.layout.fragment_home, container, false);
+
+        // Initialize views
+        image1 = view.findViewById(R.id.pothehole);
+        image2 = view.findViewById(R.id.distance);
+        temperatureText = view.findViewById(R.id.temperature_text);
+        humidityText = view.findViewById(R.id.humidity_text);
+        conditionText = view.findViewById(R.id.condition_text);
+        cityInput = view.findViewById(R.id.city_input);
+        searchButton = view.findViewById(R.id.search_button);
+
+        // Set click listeners for images
+        image1.setOnClickListener(v -> startActivity(new Intent(getActivity(), PothethonListActivity.class)));
+        image2.setOnClickListener(v -> startActivity(new Intent(getActivity(), distance.class)));
+
+        // Set up search button click listener
+        searchButton.setOnClickListener(v -> {
+            String city = cityInput.getText().toString().trim();
+            if (!city.isEmpty()) {
+                new GetWeatherTask(city).execute();
+            }
+        });
+
+        // Fetch weather for Saigon on startup
+        new GetWeatherTask("Saigon").execute();
+
+        return view;
+    }
+
+    private class GetWeatherTask extends AsyncTask<Void, Void, String> {
+        private String city;
+
+        public GetWeatherTask(String city) {
+            this.city = city;
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            String response = "";
+            try {
+                URL url = new URL("https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + API_KEY + "&units=metric");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response += line;
+                }
+                reader.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            try {
+                JSONObject jsonObject = new JSONObject(result);
+                JSONObject main = jsonObject.getJSONObject("main");
+                double temp = main.getDouble("temp");
+                int humidity = main.getInt("humidity");
+
+                String weatherCondition = jsonObject.getJSONArray("weather").getJSONObject(0).getString("description");
+
+                temperatureText.setText("Temperature: " + temp + " °C");
+                humidityText.setText("Humidity: " + humidity + "%");
+                conditionText.setText("Condition: " + weatherCondition);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
