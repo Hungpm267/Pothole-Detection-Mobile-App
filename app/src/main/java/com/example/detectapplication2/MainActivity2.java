@@ -2,12 +2,17 @@ package com.example.detectapplication2;
 
 import android.os.Bundle;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import com.example.detectapplication2.databinding.ActivityMain2Binding;
 
+import com.example.detectapplication2.databinding.ActivityMain2Binding;
+import com.example.detectapplication2.databinding.ActivityMainBinding;
 
 public class MainActivity2 extends AppCompatActivity {
 
