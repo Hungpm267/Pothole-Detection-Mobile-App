@@ -15,6 +15,7 @@
         android:background="#1a7a1a">
 
         <EditText
+
             android:id="@+id/location_search"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
