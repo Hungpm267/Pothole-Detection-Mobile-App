@@ -7,8 +7,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".SettingFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-
 
     <!--xay cardview -->
     <androidx.cardview.widget.CardView

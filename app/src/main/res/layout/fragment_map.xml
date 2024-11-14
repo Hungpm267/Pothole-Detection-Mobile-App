@@ -3,32 +3,41 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".MapFragment">
 
     <!-- Search bar and button container -->
-    <LinearLayout
-        android:id="@+id/search_container"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_top"
+        android:layout_alignParentTop="true"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:background="#1a7a1a">
-
-        <EditText
-
-            android:id="@+id/location_search"
-            android:layout_width="0dp"
+        android:layout_height="125dp"
+        app:cardCornerRadius="28dp"
+        app:cardBackgroundColor="#1a7a1a"
+        android:layout_marginTop="-20dp">
+        <LinearLayout
+            android:id="@+id/search_container"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="Enter location"
-            android:background="@android:drawable/edit_text"/>
+            android:orientation="horizontal"
+            android:layout_marginTop="60dp"
+            android:paddingHorizontal="15dp"
+            android:background="#1a7a1a">
+            <EditText
+                android:id="@+id/location_search"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Enter location"
+                android:background="@android:drawable/edit_text"/>
+            <Button
+                android:id="@+id/search_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Search" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
-        <Button
-            android:id="@+id/search_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Search" />
-    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/map_container"
