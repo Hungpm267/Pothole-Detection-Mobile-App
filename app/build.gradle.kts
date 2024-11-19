@@ -1,3 +1,9 @@
+import java.util.Properties
+
+val secretsProps = Properties()
+val secretsFile = file("../secret.properties")
+secretsFile.inputStream().use { secretsProps.load(it)}
+
 plugins {
     id("com.android.application")
 }
@@ -14,6 +20,15 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val accessKeyID = secretsProps["Access_Key_ID"] as? String
+        val accessKeySecret = secretsProps["Access_Key_Secret"] as? String
+        buildConfigField("String", "ACCESS_KEY_ID", "\"accessKeyID\"")
+        buildConfigField("String", "ACCESS_KEY_SECRET", "\"accessKeySecret\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -34,6 +49,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+    buildToolsVersion = "35.0.0"
 }
 
 dependencies {
