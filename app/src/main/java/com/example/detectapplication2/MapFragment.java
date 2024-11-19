@@ -50,18 +50,27 @@ public class MapFragment extends Fragment {
         return view;
     }
 
+    //final String accessKeyID = BuildConfig.ACCESS_KEY_ID;
+    //final String accessKeySecret = BuildConfig.ACCESS_KEY_SECRET;
     private void initializeHERESDK() {
-        String accessKeyID = "onftyHtr9vqHq4oWyTbpUQ";
-        String accessKeySecret = "Zs_127UqiZjCL0kVK90MhUaduDhv8NArb-D7ImMPj-J4csuO0gpsjZMPWskUSzBkURBcsxE6alKNq3fkSaeTxg";
+
+        String accessKeyID = "";
+        String accessKeySecret = "";
+
         SDKOptions options = new SDKOptions(accessKeyID, accessKeySecret);
 
         try {
+            // Kiểm tra kết nối và khởi tạo HERE SDK
             Context context = getContext();
             SDKNativeEngine.makeSharedInstance(context, options);
+            Log.d(TAG, "HERE SDK Initialized successfully.");
         } catch (InstantiationErrorException e) {
-            Log.e(TAG, "Initialization of HERE SDK failed: " + e.error.name());
+            // Log chi tiết lỗi để giúp phát hiện nguyên nhân
+            Log.e(TAG, "Initialization of HERE SDK failed: " + e.error.name() + ", " + e.getMessage());
+            e.printStackTrace(); // In ra chi tiết stack trace
         }
     }
+
 
     private void handlePermissions() {
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {

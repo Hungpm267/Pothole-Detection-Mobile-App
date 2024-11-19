@@ -33,6 +33,8 @@ android {
 
     buildTypes {
         release {
+            buildConfigField("String", "ACCESS_KEY_ID", "\"accessKeyID\"")
+            buildConfigField("String", "ACCESS_KEY_SECRET", "\"accessKeySecret\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
