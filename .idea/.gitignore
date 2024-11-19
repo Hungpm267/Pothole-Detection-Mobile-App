@@ -1,4 +1,4 @@
 # Default ignored files
-secret.properties
+/secret.properties
 /shelf/
 /workspace.xml
