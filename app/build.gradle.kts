@@ -1,8 +1,3 @@
-import java.util.Properties
-
-val secretsProps = Properties()
-val secretsFile = file("../secret.properties")
-secretsFile.inputStream().use { secretsProps.load(it)}
 
 plugins {
     id("com.android.application")
@@ -21,11 +16,6 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        val accessKeyID = secretsProps["Access_Key_ID"] as? String
-        val accessKeySecret = secretsProps["Access_Key_Secret"] as? String
-        buildConfigField("String", "ACCESS_KEY_ID", "\"accessKeyID\"")
-        buildConfigField("String", "ACCESS_KEY_SECRET", "\"accessKeySecret\"")
     }
 
     buildFeatures {
@@ -34,8 +24,6 @@ android {
 
     buildTypes {
         release {
-            buildConfigField("String", "ACCESS_KEY_ID", "\"accessKeyID\"")
-            buildConfigField("String", "ACCESS_KEY_SECRET", "\"accessKeySecret\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
