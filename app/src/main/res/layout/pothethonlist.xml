@@ -1,177 +1,209 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F2EEEE">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="15dp"
+    android:background="#1a7a1a">
 
-    <!-- Header -->
+    <!-- Header chào tên username  -->
     <TextView
         android:id="@+id/user_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#4CAF50"
         android:gravity="center"
-        android:padding="16dp"
-        android:text="Tên người dùng"
+        android:padding="18dp"
+        android:text="Hello User_name"
+        android:textStyle="bold"
         android:textColor="#FFFFFF"
-        android:textSize="18sp" />
+        android:textSize="24sp" />
 
-    <!-- Table Headers -->
-    <LinearLayout
-        android:id="@+id/table_header"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_view1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/user_name"
-        android:orientation="horizontal"
-        android:padding="16dp">
+        android:layout_marginTop="10dp"
+        app:cardCornerRadius="15dp">
 
-        <TextView
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="RADIUS"
-            android:textColor="#282323"
-            android:textSize="34sp" />
+            android:orientation="vertical"
+            android:padding="20dp">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Distance"
-            android:textColor="#2F2C2C"
-            android:textSize="34sp" />
-    </LinearLayout>
+            <!-- Tiêu đề bảng -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:orientation="horizontal"
+                android:background="@drawable/rounded_background"
+                android:paddingBottom="8dp">
 
-    <!-- Table Content -->
-    <LinearLayout
-        android:id="@+id/table_content"
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="RADIUS"
+                    android:textColor="#282323"
+                    android:textSize="18sp"
+                    android:gravity="center"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="DISTANCE"
+                    android:textColor="#282323"
+
+                    android:gravity="center"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Dòng dữ liệu -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Hàng 1 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/image8"
+                        android:contentDescription="Warning" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:text="13cm"
+                        android:textColor="#2A2626"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="200m"
+                        android:textColor="#332E2E"
+                        android:textSize="16sp" />
+                </LinearLayout>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#D3D3D3" />
+                <!-- Hàng 2 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/image12"
+                        android:contentDescription="Warning" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:text="20cm"
+                        android:textColor="#2A2626"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="400m"
+                        android:textColor="#332E2E"
+                        android:textSize="16sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_view2"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/table_header"
-        android:orientation="vertical"
-        android:padding="16dp">
-
-        <!-- Row 1 -->
+        android:layout_height="400dp"
+        android:layout_below="@id/card_view1"
+        android:layout_marginTop="10dp"
+        app:cardCornerRadius="15dp">
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingVertical="8dp">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="Warning"
-                android:src="@drawable/image8" />
-
+            android:layout_height="match_parent"
+            android:orientation="vertical">
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:text="13cm"
-                android:textColor="#2A2626"
+                android:gravity="start"
+                android:padding="8dp"
+                android:text="Severity level"
+                android:textStyle="bold"
+                android:textColor="#662c1b"
                 android:textSize="24sp" />
 
-            <TextView
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="200m"
-                android:textColor="#332E2E"
-                android:textSize="24sp" />
+                android:orientation="horizontal"
+                android:paddingHorizontal="15dp">
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="40dp"
+                    android:background="#daf4ff"
+                    android:text="Light"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="10dp"
+                    android:gravity="center"/>
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="40dp"
+                    android:background="#f89b28"
+                    android:text="Medium"
+                    android:layout_weight="1"
+                    android:gravity="center"/>
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="40dp"
+                    android:background="#ff7973"
+                    android:text="Hard"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:gravity="center"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_margin="10dp"
+                android:background="#d3d3d3"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/pie_chart"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+
+            </LinearLayout>
         </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
-        <!-- Các dòng dữ liệu khác (Row 2, Row 3, ...) thêm vào đây -->
-        <!-- Ví dụ Row 2 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingVertical="8dp">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="Warning"
-                android:src="@drawable/image8" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:text="13cm"
-                android:textColor="#231F1F"
-                android:textSize="20sp" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="300m"
-                android:textColor="#2C2A2A"
-                android:textSize="20sp" />
-        </LinearLayout>
-
-        <!-- Thêm các dòng khác tại đây -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingVertical="8dp">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="Warning"
-                android:src="@drawable/image12" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:text="20cm"
-                android:textColor="#2C2828"
-                android:textSize="20sp" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="400m"
-                android:textColor="#282525"
-                android:textSize="20sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingVertical="8dp">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="Warning"
-                android:src="@drawable/image12" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:text="20cm"
-                android:textColor="#2F2C2C"
-                android:textSize="20sp" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="300m"
-                android:textColor="#2A2626"
-                android:textSize="20sp" />
-        </LinearLayout>
-    </LinearLayout>
 </RelativeLayout>

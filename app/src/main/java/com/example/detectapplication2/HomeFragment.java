@@ -19,7 +19,7 @@ import java.net.URL;
 
 public class HomeFragment extends Fragment {
 
-    private ImageView image1, image2;
+    private ImageView image1, image2, imageViewchart;
     private TextView temperatureText, humidityText, conditionText;
     private EditText cityInput;
     private Button searchButton;
@@ -37,6 +37,8 @@ public class HomeFragment extends Fragment {
         // Initialize views
         image1 = view.findViewById(R.id.pothehole);
         image2 = view.findViewById(R.id.distance);
+        imageViewchart = view.findViewById(R.id.imageViewchart);
+
         temperatureText = view.findViewById(R.id.temperature_text);
         humidityText = view.findViewById(R.id.humidity_text);
         conditionText = view.findViewById(R.id.condition_text);
@@ -46,6 +48,7 @@ public class HomeFragment extends Fragment {
         // Set click listeners for images
         image1.setOnClickListener(v -> startActivity(new Intent(getActivity(), PothethonListActivity.class)));
         image2.setOnClickListener(v -> startActivity(new Intent(getActivity(), distance.class)));
+        imageViewchart.setOnClickListener(v -> startActivity(new Intent(getActivity(), PothethonListActivity.class)));
 
         // Set up search button click listener
         searchButton.setOnClickListener(v -> {

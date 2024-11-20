@@ -5,17 +5,17 @@
     android:background="@color/white">
 
     <!-- Header with User Name -->
-
     <TextView
         android:id="@+id/user_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#4CAF50"
+        android:background="@drawable/bg_only_rounded"
         android:gravity="center"
-        android:padding="16dp"
-        android:text="Tên người dùng"
+        android:padding="30dp"
+        android:text="Hello (Username)"
         android:textColor="#FFFFFF"
-        android:textSize="18sp" />
+        android:textSize="20dp"
+        android:textStyle="bold"/>
 
 
     <!-- Circle Progress with Distance -->
@@ -33,7 +33,7 @@
             android:layout_width="200dp"
             android:layout_height="200dp"
             android:contentDescription="Distance Circle"
-            android:src="@drawable/cirle" />
+            android:src="@drawable/circle" />
 
         <!-- Distance Text -->
         <TextView
@@ -58,23 +58,30 @@
             android:textSize="16sp"/>
     </RelativeLayout>
 
-    <!-- Icons and Information -->
+    <View
+        android:id="@+id/thanhchan1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginHorizontal="25dp"
+        android:layout_below="@+id/circle_progress_container"
+        android:background="#d3d3d3"/>
 
     <!-- Duration and Average Speed Information -->
     <LinearLayout
+        android:id="@+id/icon_clendar_map"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/circle_progress_container"
-        android:layout_marginTop="19dp"
+        android:layout_below="@id/thanhchan1"
+        android:layout_marginHorizontal="25dp"
+        android:layout_marginTop="20dp"
         android:gravity="center"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp">
+        android:orientation="horizontal">
 
         <!-- Calendar Icon -->
         <ImageView
             android:layout_width="50dp"
             android:layout_height="match_parent"
-            android:layout_marginRight="100dp"
+            android:layout_marginEnd="100dp"
             android:contentDescription="Calendar"
             android:src="@drawable/baseline_calendar_month_24" />
 
@@ -82,18 +89,20 @@
         <ImageView
             android:layout_width="50dp"
             android:layout_height="match_parent"
-            android:layout_marginStart="140dp"
+            android:layout_marginStart="100dp"
             android:contentDescription="Location"
             android:src="@drawable/map" />
     </LinearLayout>
 
+
     <LinearLayout
+        android:id="@+id/thongtinchitiet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/circle_progress_container"
+        android:layout_below="@id/icon_clendar_map"
         android:orientation="vertical"
-        android:layout_marginTop="80dp"
-        android:paddingHorizontal="24dp">
+        android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="25dp">
 
         <!-- Duration Info -->
         <LinearLayout
@@ -148,16 +157,16 @@
 
     </LinearLayout>
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigationView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        android:background="@color/black"
-        app:itemIconTint="@color/white"
-        app:itemTextColor="@color/white"
-        app:menu="@menu/menu_bottom_nav" />
+<!--    <com.google.android.material.bottomnavigation.BottomNavigationView-->
+<!--        android:id="@+id/bottomNavigationView"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_centerHorizontal="true"-->
+<!--        android:layout_alignParentBottom="true"-->
+<!--        android:background="@color/black"-->
+<!--        app:itemIconTint="@color/white"-->
+<!--        app:itemTextColor="@color/white"-->
+<!--        app:menu="@menu/menu_bottom_nav" />-->
 
 
 

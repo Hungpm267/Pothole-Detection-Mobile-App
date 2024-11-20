@@ -51,8 +51,8 @@ public class MapFragment extends Fragment {
     }
 
     private void initializeHERESDK() {
-        String accessKeyID = "0zFej3IeLrN7fekhQsvI_w";
-        String accessKeySecret = "Oc8KICsW4qXRQH31jL-hHF7cBOqM7SQcDXSn4wSred43PG-JMxWx7nzq1_LXXHTQEEKUZvzpDMxFyXAROuOeNw";
+        String accessKeyID = "onftyHtr9vqHq4oWyTbpUQ";
+        String accessKeySecret = "Zs_127UqiZjCL0kVK90MhUaduDhv8NArb-D7ImMPj-J4csuO0gpsjZMPWskUSzBkURBcsxE6alKNq3fkSaeTxg";
         SDKOptions options = new SDKOptions(accessKeyID, accessKeySecret);
 
         try {
