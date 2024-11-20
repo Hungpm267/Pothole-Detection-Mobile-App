@@ -23,6 +23,9 @@ import com.here.sdk.core.engine.SDKNativeEngine;
 import com.here.sdk.core.engine.SDKOptions;
 import com.here.sdk.core.errors.InstantiationErrorException;
 import com.here.sdk.mapview.MapError;
+import com.here.sdk.mapview.MapImage;
+import com.here.sdk.mapview.MapImageFactory;
+import com.here.sdk.mapview.MapMarker;
 import com.here.sdk.mapview.MapMeasure;
 import com.here.sdk.mapview.MapScene;
 import com.here.sdk.mapview.MapScheme;
@@ -33,6 +36,7 @@ public class MapFragment extends Fragment {
     private MapView mapView;
     private LocationManager locationManager;
     private static final String TAG = MapFragment.class.getSimpleName();
+    private MapMarker currentLocationMarker; // Marker cho vị trí hiện tại
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,12 +54,10 @@ public class MapFragment extends Fragment {
         return view;
     }
 
-    //final String accessKeyID = BuildConfig.ACCESS_KEY_ID;
-    //final String accessKeySecret = BuildConfig.ACCESS_KEY_SECRET;
     private void initializeHERESDK() {
 
-        String accessKeyID = "";
-        String accessKeySecret = "";
+        String accessKeyID = "onftyHtr9vqHq4oWyTbpUQ";
+        String accessKeySecret = "Zs_127UqiZjCL0kVK90MhUaduDhv8NArb-D7ImMPj-J4csuO0gpsjZMPWskUSzBkURBcsxE6alKNq3fkSaeTxg";
 
         SDKOptions options = new SDKOptions(accessKeyID, accessKeySecret);
 
@@ -82,13 +84,12 @@ public class MapFragment extends Fragment {
     }
 
     private void loadMapScene() {
+        MapMeasure mapMeasureZoom = new MapMeasure(MapMeasure.Kind.DISTANCE, 1000 * 10);
         mapView.getMapScene().loadScene(MapScheme.NORMAL_DAY, new MapScene.LoadSceneCallback() {
             @Override
             public void onLoadScene(@Nullable MapError mapError) {
-                if (mapError == null) {
-                    Log.d(TAG, "Map loaded successfully.");
-                } else {
-                    Log.e(TAG, "Map loading failed: " + mapError.name());
+                if (mapError != null) {
+                    Log.d(TAG, "Loading map failed: mapError: " + mapError.name());
                 }
             }
         });
@@ -110,9 +111,23 @@ public class MapFragment extends Fragment {
     }
 
     private void updateMapLocation(GeoCoordinates geoCoordinates) {
-        double distanceInMeters = 1000;
+        double distanceInMeters = 1000; // Đặt mức zoom
         MapMeasure mapMeasureZoom = new MapMeasure(MapMeasure.Kind.DISTANCE, distanceInMeters);
+
+        // Di chuyển camera đến vị trí được chỉ định
         mapView.getCamera().lookAt(geoCoordinates, mapMeasureZoom);
+
+        // Xóa marker cũ (nếu có)
+        if (currentLocationMarker != null) {
+            mapView.getMapScene().removeMapMarker(currentLocationMarker);
+        }
+
+        // Tạo một marker mới cho vị trí
+        MapImage mapImage = MapImageFactory.fromResource(this.getResources(), android.R.drawable.ic_menu_mylocation);
+        currentLocationMarker = new MapMarker(geoCoordinates, mapImage);
+
+        // Thêm marker vào bản đồ
+        mapView.getMapScene().addMapMarker(currentLocationMarker);
     }
 
     @Override

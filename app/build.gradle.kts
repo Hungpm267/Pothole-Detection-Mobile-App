@@ -6,6 +6,7 @@ secretsFile.inputStream().use { secretsProps.load(it)}
 
 plugins {
     id("com.android.application")
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -66,6 +67,7 @@ dependencies {
     implementation(libs.recyclerview)
     implementation(libs.volley)
     implementation(libs.picasso)
+    implementation(libs.firebase.database)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
