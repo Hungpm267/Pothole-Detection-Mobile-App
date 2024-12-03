@@ -52,4 +52,16 @@
             android:layout_height="match_parent"/>
     </LinearLayout>
 
+    <ImageButton
+        android:id="@+id/my_image_button"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:adjustViewBounds="true"
+        android:background="@drawable/bgbutton"
+        android:scaleType="fitXY"
+        android:src="@drawable/directionmap"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="30dp"
+        android:layout_marginBottom="70dp"/>
+
 </FrameLayout>

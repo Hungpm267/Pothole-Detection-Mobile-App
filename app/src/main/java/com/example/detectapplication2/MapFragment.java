@@ -2,6 +2,7 @@ package com.example.detectapplication2;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -17,6 +18,7 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 
 import com.here.sdk.core.GeoCoordinates;
 import com.here.sdk.core.engine.SDKNativeEngine;
@@ -33,6 +35,7 @@ import com.here.sdk.mapview.MapView;
 
 public class MapFragment extends Fragment {
 
+    ImageButton myImageButton;
     private MapView mapView;
     private LocationManager locationManager;
     private static final String TAG = MapFragment.class.getSimpleName();
@@ -49,6 +52,14 @@ public class MapFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
         mapView = view.findViewById(R.id.map_view);
         mapView.onCreate(savedInstanceState);
+        myImageButton = view.findViewById(R.id.my_image_button);
+        myImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                // Chuyển đến SecondActivity
+                Intent intent = new Intent(getActivity(), DirectRoad.class);
+                startActivity(intent);
+            }
+        });
 
         handlePermissions();
         return view;
