@@ -8,15 +8,16 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
 
 import com.here.sdk.core.GeoCoordinates;
 import com.here.sdk.core.engine.SDKNativeEngine;
@@ -27,21 +28,49 @@ import com.here.sdk.mapview.MapImage;
 import com.here.sdk.mapview.MapImageFactory;
 import com.here.sdk.mapview.MapMarker;
 import com.here.sdk.mapview.MapMeasure;
-import com.here.sdk.mapview.MapScene;
 import com.here.sdk.mapview.MapScheme;
 import com.here.sdk.mapview.MapView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
+
 public class MapFragment extends Fragment {
+
+    private static final String TAG = MapFragment.class.getSimpleName();
+    private static final String SEARCH_API_KEY = "aSKVjwqkRsPEW7aN0w5sBq9yf2_KkM8eZV1mACAHrgc";
 
     private MapView mapView;
     private LocationManager locationManager;
-    private static final String TAG = MapFragment.class.getSimpleName();
-    private MapMarker currentLocationMarker; // Marker cho vị trí hiện tại
+    private MapMarker currentLocationMarker;
+    private List<MapMarker> searchMarkers = new ArrayList<>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initializeHERESDK();
+    }
+
+    private void initializeHERESDK() {
+        String accessKeyId = "onftyHtr9vqHq4oWyTbpUQ";
+        String accessKeySecret = "Zs_127UqiZjCL0kVK90MhUaduDhv8NArb-D7ImMPj-J4csuO0gpsjZMPWskUSzBkURBcsxE6alKNq3fkSaeTxg";
+
+        SDKOptions options = new SDKOptions(accessKeyId, accessKeySecret);
+
+        try {
+            SDKNativeEngine.makeSharedInstance(getContext(), options);
+            Log.d(TAG, "HERE SDK initialized successfully.");
+        } catch (InstantiationErrorException e) {
+            Log.e(TAG, "HERE SDK initialization failed: " + e.getMessage());
+        }
     }
 
     @Override
@@ -50,113 +79,216 @@ public class MapFragment extends Fragment {
         mapView = view.findViewById(R.id.map_view);
         mapView.onCreate(savedInstanceState);
 
+        EditText locationSearch = view.findViewById(R.id.location_search);
+        Button searchButton = view.findViewById(R.id.search_button);
+
+        searchButton.setOnClickListener(v -> {
+            String query = locationSearch.getText().toString().trim();
+            if (!query.isEmpty()) {
+                performSearch(query);
+            } else {
+                Toast.makeText(getContext(), "Please enter a location to search.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Xử lý quyền và tải bản đồ
         handlePermissions();
         return view;
     }
 
-    private void initializeHERESDK() {
 
-        String accessKeyID = "onftyHtr9vqHq4oWyTbpUQ";
-        String accessKeySecret = "Zs_127UqiZjCL0kVK90MhUaduDhv8NArb-D7ImMPj-J4csuO0gpsjZMPWskUSzBkURBcsxE6alKNq3fkSaeTxg";
+    private void performSearch(String query) {
+        new Thread(() -> {
+            try {
+                // Tọa độ mặc định (Hà Nội)
+                double latitude = 21.0285;
+                double longitude = 105.8542;
 
-        SDKOptions options = new SDKOptions(accessKeyID, accessKeySecret);
+                // Mã hóa query
+                String encodedQuery = URLEncoder.encode(query, "UTF-8");
 
+                // Định dạng URL theo Locale.US để đảm bảo dấu thập phân dùng dấu chấm (.)
+                String urlString = String.format(
+                        java.util.Locale.US,
+                        "https://discover.search.hereapi.com/v1/discover?apikey=%s&q=%s&at=%f,%f",
+                        SEARCH_API_KEY, encodedQuery, latitude, longitude
+                );
+
+                Log.d(TAG, "Search API Full URL: " + urlString);
+
+                // Kết nối HTTP
+                URL url = new URL(urlString);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+
+                // Kiểm tra mã phản hồi
+                int responseCode = connection.getResponseCode();
+                if (responseCode == 200) {
+                    // Đọc dữ liệu trả về
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
+                    parseSearchResults(response.toString());
+                } else {
+                    // Đọc lỗi từ API
+                    BufferedReader errorReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                    StringBuilder errorResponse = new StringBuilder();
+                    String line;
+                    while ((line = errorReader.readLine()) != null) {
+                        errorResponse.append(line);
+                    }
+                    errorReader.close();
+
+                    // Log lỗi và hiển thị thông báo
+                    Log.e(TAG, "Error Response: " + errorResponse);
+                    showToast("Search API error: " + responseCode + " - " + errorResponse);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Exception during search: " + e.getMessage());
+                showToast("Search failed: " + e.getMessage());
+            }
+        }).start();
+    }
+
+
+    private void showToast(String message) {
+        // Kiểm tra xem Fragment đã được liên kết với Activity chưa
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show());
+        }
+    }
+    private void parseSearchResults(String jsonResponse) {
         try {
-            // Kiểm tra kết nối và khởi tạo HERE SDK
-            Context context = getContext();
-            SDKNativeEngine.makeSharedInstance(context, options);
-            Log.d(TAG, "HERE SDK Initialized successfully.");
-        } catch (InstantiationErrorException e) {
-            // Log chi tiết lỗi để giúp phát hiện nguyên nhân
-            Log.e(TAG, "Initialization of HERE SDK failed: " + e.error.name() + ", " + e.getMessage());
-            e.printStackTrace(); // In ra chi tiết stack trace
+            JSONObject jsonObject = new JSONObject(jsonResponse);
+            JSONArray items = jsonObject.getJSONArray("items");
+
+            getActivity().runOnUiThread(this::clearSearchMarkers);
+
+            double minDistance = Double.MAX_VALUE;
+            GeoCoordinates bestMatchCoordinates = null;
+
+            for (int i = 0; i < items.length(); i++) {
+                JSONObject item = items.getJSONObject(i);
+                JSONObject position = item.getJSONObject("position");
+                double lat = position.getDouble("lat");
+                double lng = position.getDouble("lng");
+                String title = item.getString("title");
+
+                GeoCoordinates geoCoordinates = new GeoCoordinates(lat, lng);
+                getActivity().runOnUiThread(() -> addSearchMarker(geoCoordinates, title));
+
+                // Tính khoảng cách từ tọa độ hiện tại (hoặc mặc định)
+                double distance = calculateDistance(21.0285, 105.8542, lat, lng); // Tọa độ mặc định là Hà Nội
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    bestMatchCoordinates = geoCoordinates;
+                }
+            }
+
+            if (bestMatchCoordinates != null) {
+                GeoCoordinates finalBestMatchCoordinates = bestMatchCoordinates;
+                getActivity().runOnUiThread(() -> {
+                    updateMapLocation(finalBestMatchCoordinates);
+                    Toast.makeText(getContext(), "Displaying closest match on map.", Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Found " + items.length() + " results.", Toast.LENGTH_SHORT).show());
+        } catch (JSONException e) {
+            Log.e(TAG, "Error parsing search results: " + e.getMessage());
+            getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Error parsing search results.", Toast.LENGTH_SHORT).show());
         }
     }
 
+
+    private void clearSearchMarkers() {
+        for (MapMarker marker : searchMarkers) {
+            mapView.getMapScene().removeMapMarker(marker);
+        }
+        searchMarkers.clear();
+    }
+
+    private void addSearchMarker(GeoCoordinates geoCoordinates, String title) {
+        MapImage markerImage = MapImageFactory.fromResource(getResources(), android.R.drawable.ic_menu_mylocation);
+        MapMarker mapMarker = new MapMarker(geoCoordinates, markerImage);
+        searchMarkers.add(mapMarker);
+        mapView.getMapScene().addMapMarker(mapMarker);
+    }
 
     private void handlePermissions() {
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         } else {
-            requestCurrentLocation();  // yêu cầu vị tri trc
             loadMapScene();
+            requestCurrentLocation(); // Lấy vị trí hiện tại và cập nhật bản đồ
         }
     }
-
     private void loadMapScene() {
-        MapMeasure mapMeasureZoom = new MapMeasure(MapMeasure.Kind.DISTANCE, 1000 * 10);
-        mapView.getMapScene().loadScene(MapScheme.NORMAL_DAY, new MapScene.LoadSceneCallback() {
-            @Override
-            public void onLoadScene(@Nullable MapError mapError) {
-                if (mapError != null) {
-                    Log.d(TAG, "Loading map failed: mapError: " + mapError.name());
-                }
+        mapView.getMapScene().loadScene(MapScheme.NORMAL_DAY, mapError -> {
+            if (mapError != null) {
+                Log.e(TAG, "Failed to load map scene: " + mapError.name());
+            } else {
+                Log.d(TAG, "Map scene loaded successfully.");
             }
         });
+    }
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // Bán kính Trái Đất (kilometer)
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // Khoảng cách theo km
     }
 
     private void requestCurrentLocation() {
         locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, new LocationListener() {
-            @Override
-            public void onLocationChanged(@NonNull Location location) {
-                updateMapLocation(new GeoCoordinates(location.getLatitude(), location.getLongitude()));
-            }
-        });
+        // Lấy vị trí GPS mới nhất
+        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+        if (location != null) {
+            // Cập nhật bản đồ nếu lấy được vị trí cuối cùng
+            updateMapLocation(new GeoCoordinates(location.getLatitude(), location.getLongitude()));
+        } else {
+            // Lắng nghe các thay đổi vị trí trong trường hợp không có vị trí trước đó
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, new LocationListener() {
+                @Override
+                public void onLocationChanged(@NonNull Location location) {
+                    updateMapLocation(new GeoCoordinates(location.getLatitude(), location.getLongitude()));
+                    locationManager.removeUpdates(this); // Dừng lắng nghe sau khi nhận được vị trí
+                }
+            });
+        }
     }
 
+
     private void updateMapLocation(GeoCoordinates geoCoordinates) {
-        double distanceInMeters = 1000; // Đặt mức zoom
-        MapMeasure mapMeasureZoom = new MapMeasure(MapMeasure.Kind.DISTANCE, distanceInMeters);
+        MapMeasure mapMeasure = new MapMeasure(MapMeasure.Kind.DISTANCE, 1000);
 
-        // Di chuyển camera đến vị trí được chỉ định
-        mapView.getCamera().lookAt(geoCoordinates, mapMeasureZoom);
+        // Di chuyển camera bản đồ tới vị trí hiện tại
+        mapView.getCamera().lookAt(geoCoordinates, mapMeasure);
 
-        // Xóa marker cũ (nếu có)
+        // Xóa marker cũ nếu có
         if (currentLocationMarker != null) {
             mapView.getMapScene().removeMapMarker(currentLocationMarker);
         }
 
-        // Tạo một marker mới cho vị trí
-        MapImage mapImage = MapImageFactory.fromResource(this.getResources(), android.R.drawable.ic_menu_mylocation);
-        currentLocationMarker = new MapMarker(geoCoordinates, mapImage);
-
-        // Thêm marker vào bản đồ
+        // Thêm marker tại vị trí hiện tại
+        MapImage markerImage = MapImageFactory
+                .fromResource(getResources(), android.R.drawable.ic_menu_mylocation);
+        currentLocationMarker = new MapMarker(geoCoordinates, markerImage);
         mapView.getMapScene().addMapMarker(currentLocationMarker);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == 1 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            loadMapScene();
-            requestCurrentLocation();
-        } else {
-            Log.e(TAG, "Location permissions denied by user.");
-        }
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mapView.onPause();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        mapView.onResume();
-    }
-
-    private void disposeHERESDK() {
-        SDKNativeEngine sdkNativeEngine = SDKNativeEngine.getSharedInstance();
-        if (sdkNativeEngine != null) {
-            sdkNativeEngine.dispose();
-            SDKNativeEngine.setSharedInstance(null);
-        }
     }
 }
