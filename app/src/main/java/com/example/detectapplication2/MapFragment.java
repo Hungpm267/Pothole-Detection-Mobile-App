@@ -52,6 +52,7 @@ public class MapFragment extends Fragment {
     private LocationManager locationManager;
     private MapMarker currentLocationMarker;
     private List<MapMarker> searchMarkers = new ArrayList<>();
+    private GeoCoordinates currentLocation = null; // Tọa độ hiện tại
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -171,6 +172,14 @@ public class MapFragment extends Fragment {
             double minDistance = Double.MAX_VALUE;
             GeoCoordinates bestMatchCoordinates = null;
 
+            if (currentLocation == null) {
+                showToast("Current location is not available.");
+                return;
+            }
+
+            double currentLat = currentLocation.latitude;
+            double currentLng = currentLocation.longitude;
+
             for (int i = 0; i < items.length(); i++) {
                 JSONObject item = items.getJSONObject(i);
                 JSONObject position = item.getJSONObject("position");
@@ -181,8 +190,8 @@ public class MapFragment extends Fragment {
                 GeoCoordinates geoCoordinates = new GeoCoordinates(lat, lng);
                 getActivity().runOnUiThread(() -> addSearchMarker(geoCoordinates, title));
 
-                // Tính khoảng cách từ tọa độ hiện tại (hoặc mặc định)
-                double distance = calculateDistance(21.0285, 105.8542, lat, lng); // Tọa độ mặc định là Hà Nội
+                // Tính khoảng cách từ tọa độ hiện tại
+                double distance = calculateDistance(currentLat, currentLng, lat, lng);
 
                 if (distance < minDistance) {
                     minDistance = distance;
@@ -204,6 +213,7 @@ public class MapFragment extends Fragment {
             getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Error parsing search results.", Toast.LENGTH_SHORT).show());
         }
     }
+
 
 
     private void clearSearchMarkers() {
@@ -259,19 +269,22 @@ public class MapFragment extends Fragment {
         Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
         if (location != null) {
-            // Cập nhật bản đồ nếu lấy được vị trí cuối cùng
-            updateMapLocation(new GeoCoordinates(location.getLatitude(), location.getLongitude()));
+            // Cập nhật tọa độ hiện tại và bản đồ
+            currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
+            updateMapLocation(currentLocation);
         } else {
             // Lắng nghe các thay đổi vị trí trong trường hợp không có vị trí trước đó
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, new LocationListener() {
                 @Override
                 public void onLocationChanged(@NonNull Location location) {
-                    updateMapLocation(new GeoCoordinates(location.getLatitude(), location.getLongitude()));
+                    currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
+                    updateMapLocation(currentLocation);
                     locationManager.removeUpdates(this); // Dừng lắng nghe sau khi nhận được vị trí
                 }
             });
         }
     }
+
 
 
     private void updateMapLocation(GeoCoordinates geoCoordinates) {
