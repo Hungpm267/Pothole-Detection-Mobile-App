@@ -102,8 +102,9 @@ public class MapFragment extends Fragment {
         new Thread(() -> {
             try {
                 // Tọa độ mặc định (Hà Nội)
-                double latitude = 21.0285;
-                double longitude = 105.8542;
+
+                double Lat = currentLocation.latitude;
+                double Lng = currentLocation.longitude;
 
                 // Mã hóa query
                 String encodedQuery = URLEncoder.encode(query, "UTF-8");
@@ -112,7 +113,7 @@ public class MapFragment extends Fragment {
                 String urlString = String.format(
                         java.util.Locale.US,
                         "https://discover.search.hereapi.com/v1/discover?apikey=%s&q=%s&at=%f,%f",
-                        SEARCH_API_KEY, encodedQuery, latitude, longitude
+                        SEARCH_API_KEY, encodedQuery, Lat, Lng
                 );
 
                 Log.d(TAG, "Search API Full URL: " + urlString);
