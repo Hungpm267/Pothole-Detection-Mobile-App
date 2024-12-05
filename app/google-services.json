@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "887282655078",
+    "firebase_url": "https://detectapplication-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "detectapplication",
     "storage_bucket": "detectapplication.firebasestorage.app"
   },
