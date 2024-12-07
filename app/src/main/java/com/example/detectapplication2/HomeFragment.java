@@ -3,7 +3,6 @@ package com.example.detectapplication2;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +10,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -28,12 +30,13 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 public class HomeFragment extends Fragment {
-
+    private FirebaseAuth mAuth;
     private TextView UserName;
     private ImageView image1, image2, imageViewchart;
     private TextView temperatureText, humidityText, conditionText;
     private EditText cityInput;
     private Button searchButton;
+    private String uid;
     private final String API_KEY = "90ec80953b809a18c31b89f696cf4b76";
 
     public HomeFragment() {
@@ -64,17 +67,39 @@ public class HomeFragment extends Fragment {
         image2.setOnClickListener(v -> startActivity(new Intent(getActivity(), distance.class)));
         imageViewchart.setOnClickListener(v -> startActivity(new Intent(getActivity(), PothethonListActivity.class)));
 
-        Bundle bundle = getArguments();
-        if (bundle != null) {
-            String userName = bundle.getString("name");
-            if (userName != null) {
-                UserName.setText(userName);
-            } else {
-                UserName.setText("Unknown User"); // Đặt giá trị mặc định nếu cần
+        mAuth = FirebaseAuth.getInstance();
+        uid = mAuth.getCurrentUser().getUid();
+
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String usernameFromDB = snapshot.child("name").getValue(String.class);
+
+                    // Cập nhật TextView với dữ liệu từ Realtime Database
+                    UserName.setText(usernameFromDB);
+                } else {
+                    Toast.makeText(getActivity(), "Không tìm thấy thông tin người dùng.", Toast.LENGTH_LONG).show();
+                }
             }
-        } else {
-            UserName.setText("No Data Found");
-        }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+//        Bundle bundle = getArguments();
+//        if (bundle != null) {
+//            String userName = bundle.getString("name");
+//            if (userName != null) {
+//                UserName.setText(userName);
+//            } else {
+//                UserName.setText("Unknown User"); // Đặt giá trị mặc định nếu cần
+//            }
+//        } else {
+//            UserName.setText("No Data Found");
+//        }
 
         // Set up search button click listener
         searchButton.setOnClickListener(v -> {

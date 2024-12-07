@@ -5,6 +5,9 @@
       <SelectionState runConfigName="Pothole-Detection-Mobile-App.detectApplication2.app">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+      <SelectionState runConfigName="EditProfile">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>

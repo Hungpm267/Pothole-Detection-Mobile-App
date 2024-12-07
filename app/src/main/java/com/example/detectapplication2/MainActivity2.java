@@ -1,60 +1,55 @@
 package com.example.detectapplication2;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.detectapplication2.databinding.ActivityMain2Binding;
-import com.example.detectapplication2.databinding.ActivityMainBinding;
 
 public class MainActivity2 extends AppCompatActivity {
 
     ActivityMain2Binding binding;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMain2Binding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        String userName = getIntent().getStringExtra("name");
-        Log.d("MainActivity2", "Logged-in User: " + userName);
-        String userid = getIntent().getStringExtra("uid");
-        String userEmail = getIntent().getStringExtra("email");
-        String userPassword = getIntent().getStringExtra("password");
-        replaceFragment(new HomeFragment(), userName);
+        // Kiểm tra Intent nếu có yêu cầu hiển thị SettingFragment
+        Intent intent = getIntent();
+        String fragment = intent.getStringExtra("fragment");
+
+        if (fragment != null && fragment.equals("setting")) {
+            replaceFragment(new SettingFragment());
+            binding.bottomNavigationView.setSelectedItemId(R.id.setting);
+        } else {
+            replaceFragment(new HomeFragment());  // Mặc định hiển thị HomeFragment
+            binding.bottomNavigationView.setSelectedItemId(R.id.home);
+        }
 
         binding.bottomNavigationView.setOnItemSelectedListener(item -> {
             if (item.getItemId() == R.id.home) {
-                replaceFragment(new HomeFragment(), userName);
+                replaceFragment(new HomeFragment());
             } else if (item.getItemId() == R.id.map) {
-                replaceFragment(new MapFragment(), null);
+                replaceFragment(new MapFragment());
             } else if (item.getItemId() == R.id.setting) {
-                replaceFragment(new SettingFragment(), null);
+                replaceFragment(new SettingFragment());
             }
 
             return true;
         });
     }
 
-    private void replaceFragment(Fragment fragment, String userName){
-        if(userName != null && fragment instanceof HomeFragment){
-            Bundle bundle = new Bundle();
-            bundle.putString("name", userName);
-            Log.d("Bundle", "name" + bundle.getString("name"));
-            fragment.setArguments(bundle);
-        }
-
+    // Hàm thay thế fragment trong container
+    private void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.frame_layout, fragment);
+        fragmentTransaction.replace(R.id.frame_layout, fragment); // Thay thế fragment vào container
         fragmentTransaction.commit();
     }
 }

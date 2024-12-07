@@ -115,21 +115,20 @@ public class SignInActivity extends AppCompatActivity {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                                     if (snapshot.exists()) {
-                                        // Lấy thông tin từ Realtime Database
-                                        String nameFromDB = snapshot.child("name").getValue(String.class);
-                                        String emailFromDB = snapshot.child("email").getValue(String.class);
-                                        String passwordFromDB = snapshot.child("password").getValue(String.class);
-
-                                        // Chuyển sang MainActivity2 và truyền dữ liệu
                                         Intent intent = new Intent(SignInActivity.this, MainActivity2.class);
-                                        intent.putExtra("uid", uid); // Truyền UID
-                                        Log.d("uid", "Logged-in User: " + uid);
-                                        intent.putExtra("name", nameFromDB); // Truyền tên
-                                        Log.d("Name", "Logged-in User: " + nameFromDB);
-                                        intent.putExtra("email", emailFromDB); // Truyền email
-                                        Log.d("Email", "Logged-in User: " + emailFromDB);
-                                        intent.putExtra("password", passwordFromDB); // Truyền mật khẩu
-                                        Log.d("Pass", "Logged-in User: " + passwordFromDB);
+//                                        // Lấy thông tin từ Realtime Database
+//                                        String nameFromDB = snapshot.child("name").getValue(String.class);
+//                                        String emailFromDB = snapshot.child("email").getValue(String.class);
+//                                        String passwordFromDB = snapshot.child("password").getValue(String.class);
+                                        //Chuyển sang MainActivity2 và truyền dữ liệu
+//                                        intent.putExtra("uid", uid); // Truyền UID
+//                                        Log.d("uid", "Logged-in User: " + uid);
+//                                        intent.putExtra("name", nameFromDB); // Truyền tên
+//                                        Log.d("Name", "Logged-in User: " + nameFromDB);
+//                                        intent.putExtra("email", emailFromDB); // Truyền email
+//                                        Log.d("Email", "Logged-in User: " + emailFromDB);
+//                                        intent.putExtra("password", passwordFromDB); // Truyền mật khẩu
+//                                        Log.d("Pass", "Logged-in User: " + passwordFromDB);
                                         startActivity(intent);
                                         finish();
                                     } else {
