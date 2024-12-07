@@ -2,6 +2,7 @@ package com.example.detectapplication2;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,6 +12,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 public class SignInActivity extends AppCompatActivity {
 
@@ -57,7 +64,7 @@ public class SignInActivity extends AppCompatActivity {
 
             // Kiểm tra dữ liệu đầu vào
             if (validateEmail(email) && validatePassword(password)) {
-                loginUser(email, password);
+                loginUser(email,password);
             }
         });
     }
@@ -98,13 +105,45 @@ public class SignInActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null && user.isEmailVerified()) {
+
+                            String uid = user.getUid();
+                            updatePasswordInDatabase(uid, password);
+                            Log.d("UID Authentication", "Logged-in User: " + uid);
                             // Nếu Email đã xác thực
-                            Intent intent = new Intent(SignInActivity.this, MainActivity2.class);
-                            intent.putExtra("email", user.getEmail());
-                            startActivity(intent);
-                            finish();
+                            DatabaseReference reference = FirebaseDatabase.getInstance().getReference("users");
+                            reference.child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    if (snapshot.exists()) {
+                                        // Lấy thông tin từ Realtime Database
+                                        String nameFromDB = snapshot.child("name").getValue(String.class);
+                                        String emailFromDB = snapshot.child("email").getValue(String.class);
+                                        String passwordFromDB = snapshot.child("password").getValue(String.class);
+
+                                        // Chuyển sang MainActivity2 và truyền dữ liệu
+                                        Intent intent = new Intent(SignInActivity.this, MainActivity2.class);
+                                        intent.putExtra("uid", uid); // Truyền UID
+                                        Log.d("uid", "Logged-in User: " + uid);
+                                        intent.putExtra("name", nameFromDB); // Truyền tên
+                                        Log.d("Name", "Logged-in User: " + nameFromDB);
+                                        intent.putExtra("email", emailFromDB); // Truyền email
+                                        Log.d("Email", "Logged-in User: " + emailFromDB);
+                                        intent.putExtra("password", passwordFromDB); // Truyền mật khẩu
+                                        Log.d("Pass", "Logged-in User: " + passwordFromDB);
+                                        startActivity(intent);
+                                        finish();
+                                    } else {
+                                        Toast.makeText(SignInActivity.this, "Không thể lấy thông tin người dùng.", Toast.LENGTH_LONG).show();
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                    Toast.makeText(SignInActivity.this, "Lỗi khi kết nối: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         } else {
-                            // Nếu Email chưa xác thực
+                            // Nếu email chưa xác thực
                             Toast.makeText(this, "Vui lòng xác thực email trước khi đăng nhập", Toast.LENGTH_LONG).show();
                         }
                     } else {
@@ -114,4 +153,53 @@ public class SignInActivity extends AppCompatActivity {
                     }
                 });
     }
+
+    private void updatePasswordInDatabase(String uid, String newPassword) {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
+
+        // Lấy mật khẩu hiện tại từ Realtime Database
+        userRef.child("password").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String currentPassword = snapshot.getValue(String.class);
+
+                    // So sánh mật khẩu
+                    if (currentPassword != null && currentPassword.equals(newPassword)) {
+
+                    } else {
+                        // Nếu khác nhau, tiến hành cập nhật
+                        userRef.child("password").setValue(newPassword)
+                                .addOnSuccessListener(unused -> {
+                                    // Cập nhật thêm trường confirmPassword
+                                    userRef.child("confirmPassword").setValue(newPassword)
+                                            .addOnSuccessListener(unused1 -> Toast.makeText(
+                                                    SignInActivity.this,
+                                                    "Cập nhật mật khẩu và xác nhận thành công",
+                                                    Toast.LENGTH_SHORT
+                                            ).show())
+                                            .addOnFailureListener(e -> Toast.makeText(
+                                                    SignInActivity.this,
+                                                    "Cập nhật mật khẩu thành công nhưng lỗi khi cập nhật confirmPassword: " + e.getMessage(),
+                                                    Toast.LENGTH_SHORT
+                                            ).show());
+                                })
+                                .addOnFailureListener(e -> Toast.makeText(
+                                        SignInActivity.this,
+                                        "Không thể cập nhật mật khẩu: " + e.getMessage(),
+                                        Toast.LENGTH_SHORT
+                                ).show());
+                    }
+                } else {
+                    Toast.makeText(SignInActivity.this, "Không tìm thấy người dùng trong cơ sở dữ liệu", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(SignInActivity.this, "Lỗi khi truy xuất cơ sở dữ liệu: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 }

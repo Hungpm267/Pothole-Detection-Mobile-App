@@ -103,7 +103,7 @@
                 android:id="@+id/edt_confirm_password"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:inputType="textEmailAddress"
+                android:inputType="textPassword"
                 android:drawableEnd="@drawable/password_icon"
                 android:background="@drawable/bgbuttongoogle"
                 android:paddingHorizontal="15dp"

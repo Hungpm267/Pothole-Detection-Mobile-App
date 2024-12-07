@@ -3,6 +3,7 @@ package com.example.detectapplication2;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,8 +18,18 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+
 public class HomeFragment extends Fragment {
 
+    private TextView UserName;
     private ImageView image1, image2, imageViewchart;
     private TextView temperatureText, humidityText, conditionText;
     private EditText cityInput;
@@ -35,6 +46,9 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         // Initialize views
+        UserName = view.findViewById(R.id.username);
+
+        // Initialize views
         image1 = view.findViewById(R.id.pothehole);
         image2 = view.findViewById(R.id.distance);
         imageViewchart = view.findViewById(R.id.imageViewchart);
@@ -49,6 +63,18 @@ public class HomeFragment extends Fragment {
         image1.setOnClickListener(v -> startActivity(new Intent(getActivity(), PothethonListActivity.class)));
         image2.setOnClickListener(v -> startActivity(new Intent(getActivity(), distance.class)));
         imageViewchart.setOnClickListener(v -> startActivity(new Intent(getActivity(), PothethonListActivity.class)));
+
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            String userName = bundle.getString("name");
+            if (userName != null) {
+                UserName.setText(userName);
+            } else {
+                UserName.setText("Unknown User"); // Đặt giá trị mặc định nếu cần
+            }
+        } else {
+            UserName.setText("No Data Found");
+        }
 
         // Set up search button click listener
         searchButton.setOnClickListener(v -> {
@@ -108,5 +134,7 @@ public class HomeFragment extends Fragment {
                 e.printStackTrace();
             }
         }
+
     }
+
 }
