@@ -1,0 +1,28 @@
+<component name="libraryTable">
+  <library name="KotlinJavaScript" type="repository">
+    <properties maven-id="org.jetbrains.kotlin:kotlin-stdlib-js:1.9.24" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-js/1.9.24/kotlin-stdlib-js-1.9.24.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-js/1.9.24/kotlin-stdlib-js-1.9.24-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-js/1.9.24/kotlin-stdlib-js-1.9.24-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
+    <?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="match_parent">
+
+<TextView
+    android:id="@+id/tvAccelerometerData"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Gia tốc: 0.0"
+    android:textSize="18sp"
+    android:layout_centerInParent="true"/>
+
+</RelativeLayout>
