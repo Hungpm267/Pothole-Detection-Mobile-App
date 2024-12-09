@@ -19,6 +19,14 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import com.google.firebase.database.ValueEventListener;
 import com.here.sdk.core.GeoCoordinates;
 import com.here.sdk.core.engine.SDKNativeEngine;
 import com.here.sdk.core.engine.SDKOptions;
@@ -77,6 +85,7 @@ public class MapFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
+
         mapView = view.findViewById(R.id.map_view);
         mapView.onCreate(savedInstanceState);
 
@@ -97,6 +106,25 @@ public class MapFragment extends Fragment {
         return view;
     }
 
+    private void handlePermissions() {
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        } else {
+            loadMapScene();
+            requestCurrentLocation(); // Lấy vị trí hiện tại và cập nhật bản đồ
+        }
+    }
+
+    private void loadMapScene() {
+        mapView.getMapScene().loadScene(MapScheme.NORMAL_DAY, mapError -> {
+            if (mapError != null) {
+                Log.e(TAG, "Failed to load map scene: " + mapError.name());
+            } else {
+                Log.d(TAG, "Map scene loaded successfully.");
+                fetchAndDisplayPotholes();
+            }
+        });
+    }
 
     private void performSearch(String query) {
         new Thread(() -> {
@@ -216,7 +244,6 @@ public class MapFragment extends Fragment {
     }
 
 
-
     private void clearSearchMarkers() {
         for (MapMarker marker : searchMarkers) {
             mapView.getMapScene().removeMapMarker(marker);
@@ -231,23 +258,6 @@ public class MapFragment extends Fragment {
         mapView.getMapScene().addMapMarker(mapMarker);
     }
 
-    private void handlePermissions() {
-        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-        } else {
-            loadMapScene();
-            requestCurrentLocation(); // Lấy vị trí hiện tại và cập nhật bản đồ
-        }
-    }
-    private void loadMapScene() {
-        mapView.getMapScene().loadScene(MapScheme.NORMAL_DAY, mapError -> {
-            if (mapError != null) {
-                Log.e(TAG, "Failed to load map scene: " + mapError.name());
-            } else {
-                Log.d(TAG, "Map scene loaded successfully.");
-            }
-        });
-    }
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371; // Bán kính Trái Đất (kilometer)
         double latDistance = Math.toRadians(lat2 - lat1);
@@ -287,7 +297,6 @@ public class MapFragment extends Fragment {
     }
 
 
-
     private void updateMapLocation(GeoCoordinates geoCoordinates) {
         MapMeasure mapMeasure = new MapMeasure(MapMeasure.Kind.DISTANCE, 1000);
 
@@ -305,4 +314,32 @@ public class MapFragment extends Fragment {
         currentLocationMarker = new MapMarker(geoCoordinates, markerImage);
         mapView.getMapScene().addMapMarker(currentLocationMarker);
     }
+
+    private void fetchAndDisplayPotholes() {
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference("potholes");
+        database.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    Pothole pothole = data.getValue(Pothole.class);
+                    if (pothole != null) {
+                        GeoCoordinates location = new GeoCoordinates(pothole.getLatitude(), pothole.getLongitude());
+                        addPotholeMarker(location, pothole.getLevel());
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                showToast("Error fetching pothole data.");
+            }
+        });
+    }
+
+    private void addPotholeMarker(GeoCoordinates geoCoordinates, String level) {
+        MapImage markerImage = MapImageFactory.fromResource(getResources(), R.drawable.attention_new);
+        MapMarker mapMarker = new MapMarker(geoCoordinates, markerImage);
+        mapView.getMapScene().addMapMarker(mapMarker);
+    }
+
 }
