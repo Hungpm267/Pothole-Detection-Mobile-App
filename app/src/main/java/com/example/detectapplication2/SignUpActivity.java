@@ -1,9 +1,13 @@
 package com.example.detectapplication2;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -19,9 +23,11 @@ public class SignUpActivity extends AppCompatActivity {
     private Button btnSignUp, btnBack;
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
+    private boolean isPasswordVisible = false;
 
     private final String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +53,28 @@ public class SignUpActivity extends AppCompatActivity {
             Intent intent = new Intent(SignUpActivity.this, MainActivity.class);
             startActivity(intent);
             finish();
+        });
+
+        edtPassword.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                Drawable drawableEnd = edtPassword.getCompoundDrawables()[2]; // Lấy drawableEnd
+                if (drawableEnd != null && event.getRawX() >= (edtPassword.getRight() - drawableEnd.getBounds().width())) {
+                    togglePasswordVisibility(edtPassword);
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        edtConfirmPassword.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                Drawable drawableEnd = edtConfirmPassword.getCompoundDrawables()[2]; // Lấy drawableEnd
+                if (drawableEnd != null && event.getRawX() >= (edtConfirmPassword.getRight() - drawableEnd.getBounds().width())) {
+                    togglePasswordVisibility(edtConfirmPassword);
+                    return true;
+                }
+            }
+            return false;
         });
     }
 
@@ -121,4 +149,21 @@ public class SignUpActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
+
+    private void togglePasswordVisibility(EditText edtPassword) {
+        if (isPasswordVisible) {
+            // Chuyển về dạng ẩn mật khẩu
+            edtPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            edtPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.password_icon, 0);
+        } else {
+            // Chuyển về dạng hiện mật khẩu
+            edtPassword.setInputType(InputType.TYPE_CLASS_TEXT);
+            edtPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.password_icon, 0);
+        }
+        isPasswordVisible = !isPasswordVisible;
+
+        // Đặt lại con trỏ ở cuối văn bản
+        edtPassword.setSelection(edtPassword.getText().length());
+    }
+
 }
