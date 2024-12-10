@@ -256,7 +256,7 @@ public class MapFragment extends Fragment {
     }
 
     private void addSearchMarker(GeoCoordinates geoCoordinates, String title) {
-        MapImage markerImage = MapImageFactory.fromResource(getResources(), android.R.drawable.ic_menu_mylocation);
+        MapImage markerImage = MapImageFactory.fromResource(getResources(), R.drawable.mylocation);
         MapMarker mapMarker = new MapMarker(geoCoordinates, markerImage);
         searchMarkers.add(mapMarker);
         mapView.getMapScene().addMapMarker(mapMarker);
@@ -307,7 +307,7 @@ public class MapFragment extends Fragment {
 
             // Thêm marker cho vị trí hiện tại
             MapImage markerImage = MapImageFactory
-                    .fromResource(getResources(), android.R.drawable.ic_menu_mylocation);
+                    .fromResource(getResources(), R.drawable.mylocation);
             if (currentLocationMarker != null) {
                 mapView.getMapScene().removeMapMarker(currentLocationMarker);
             }
@@ -327,7 +327,7 @@ public class MapFragment extends Fragment {
 
         // Thêm marker cho vị trí hiện tại
         MapImage markerImage = MapImageFactory
-                .fromResource(getResources(), android.R.drawable.ic_menu_mylocation);
+                .fromResource(getResources(), R.drawable.mylocation);
         MapMarker currentLocationMarker = new MapMarker(geoCoordinates, markerImage);
         mapView.getMapScene().addMapMarker(currentLocationMarker);
     }
