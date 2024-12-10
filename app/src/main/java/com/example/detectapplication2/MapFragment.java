@@ -121,10 +121,14 @@ public class MapFragment extends Fragment {
                 Log.e(TAG, "Failed to load map scene: " + mapError.name());
             } else {
                 Log.d(TAG, "Map scene loaded successfully.");
+                // Chỉ di chuyển camera đến vị trí hiện tại
+                requestCurrentLocation();
+                // Hiển thị pothole sau khi đã di chuyển camera
                 fetchAndDisplayPotholes();
             }
         });
     }
+
 
     private void performSearch(String query) {
         new Thread(() -> {
@@ -280,38 +284,51 @@ public class MapFragment extends Fragment {
         Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
         if (location != null) {
-            // Cập nhật tọa độ hiện tại và bản đồ
+            // Di chuyển camera tới vị trí hiện tại
             currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
-            updateMapLocation(currentLocation);
+            moveCameraToCurrentLocation();
         } else {
-            // Lắng nghe các thay đổi vị trí trong trường hợp không có vị trí trước đó
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, new LocationListener() {
                 @Override
                 public void onLocationChanged(@NonNull Location location) {
+                    // Di chuyển camera tới vị trí hiện tại
                     currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
-                    updateMapLocation(currentLocation);
-                    locationManager.removeUpdates(this); // Dừng lắng nghe sau khi nhận được vị trí
+                    moveCameraToCurrentLocation();
+                    locationManager.removeUpdates(this); // Dừng lắng nghe
                 }
             });
         }
     }
 
+    private void moveCameraToCurrentLocation() {
+        if (currentLocation != null && mapView != null) {
+            MapMeasure mapMeasure = new MapMeasure(MapMeasure.Kind.DISTANCE, 1000); // Zoom level
+            mapView.getCamera().lookAt(currentLocation, mapMeasure);
+
+            // Thêm marker cho vị trí hiện tại
+            MapImage markerImage = MapImageFactory
+                    .fromResource(getResources(), android.R.drawable.ic_menu_mylocation);
+            if (currentLocationMarker != null) {
+                mapView.getMapScene().removeMapMarker(currentLocationMarker);
+            }
+            currentLocationMarker = new MapMarker(currentLocation, markerImage);
+            mapView.getMapScene().addMapMarker(currentLocationMarker);
+        }
+    }
+
 
     private void updateMapLocation(GeoCoordinates geoCoordinates) {
-        MapMeasure mapMeasure = new MapMeasure(MapMeasure.Kind.DISTANCE, 1000);
-
-        // Di chuyển camera bản đồ tới vị trí hiện tại
-        mapView.getCamera().lookAt(geoCoordinates, mapMeasure);
-
-        // Xóa marker cũ nếu có
-        if (currentLocationMarker != null) {
-            mapView.getMapScene().removeMapMarker(currentLocationMarker);
+        if (geoCoordinates == null || mapView == null) {
+            return;
         }
 
-        // Thêm marker tại vị trí hiện tại
+        MapMeasure mapMeasure = new MapMeasure(MapMeasure.Kind.DISTANCE, 1000); // Zoom level
+        mapView.getCamera().lookAt(geoCoordinates, mapMeasure);
+
+        // Thêm marker cho vị trí hiện tại
         MapImage markerImage = MapImageFactory
                 .fromResource(getResources(), android.R.drawable.ic_menu_mylocation);
-        currentLocationMarker = new MapMarker(geoCoordinates, markerImage);
+        MapMarker currentLocationMarker = new MapMarker(geoCoordinates, markerImage);
         mapView.getMapScene().addMapMarker(currentLocationMarker);
     }
 
@@ -323,8 +340,8 @@ public class MapFragment extends Fragment {
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Pothole pothole = data.getValue(Pothole.class);
                     if (pothole != null) {
-                        GeoCoordinates location = new GeoCoordinates(pothole.getLatitude(), pothole.getLongitude());
-                        addPotholeMarker(location, pothole.getLevel());
+                        GeoCoordinates coordinates = new GeoCoordinates(pothole.getLatitude(), pothole.getLongitude());
+                        addPotholeMarker(coordinates, pothole.getLevel());
                     }
                 }
             }

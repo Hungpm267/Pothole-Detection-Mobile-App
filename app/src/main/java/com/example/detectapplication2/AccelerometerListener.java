@@ -31,8 +31,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class AccelerometerListener implements SensorEventListener {
     private Context context;
-    private static final double THRESHOLD_LIGHT = 12.0;
-    private static final double THRESHOLD_MEDIUM = 20.0;
+    private static final double THRESHOLD_LIGHT = 20.0;
+    private static final double THRESHOLD_MEDIUM = 30.0;
 
     public AccelerometerListener(Context context) {
         this.context = context;
@@ -58,7 +58,7 @@ public class AccelerometerListener implements SensorEventListener {
         String level;
         if (magnitude < THRESHOLD_MEDIUM) {
             level = "light";
-        } else if (magnitude < 30.0) {
+        } else if (magnitude < 40.0) {
             level = "medium";
         } else {
             level = "heavy";
