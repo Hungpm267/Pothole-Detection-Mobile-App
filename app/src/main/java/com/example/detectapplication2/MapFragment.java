@@ -19,6 +19,8 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.OnFailureListener;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -38,6 +40,12 @@ import com.here.sdk.mapview.MapMarker;
 import com.here.sdk.mapview.MapMeasure;
 import com.here.sdk.mapview.MapScheme;
 import com.here.sdk.mapview.MapView;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -59,6 +67,7 @@ public class MapFragment extends Fragment {
     private MapView mapView;
     private LocationManager locationManager;
     private MapMarker currentLocationMarker;
+    private FusedLocationProviderClient fusedLocationClient;
     private List<MapMarker> searchMarkers = new ArrayList<>();
     private GeoCoordinates currentLocation = null; // Tọa độ hiện tại
 
@@ -85,6 +94,8 @@ public class MapFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(getActivity());
 
         mapView = view.findViewById(R.id.map_view);
         mapView.onCreate(savedInstanceState);
@@ -279,6 +290,20 @@ public class MapFragment extends Fragment {
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
+
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(location -> {
+                    if (location != null) {
+                        currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
+                        moveCameraToCurrentLocation();
+                    } else {
+                        showToast("Unable to retrieve current location.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching location: " + e.getMessage());
+                    showToast("Error fetching location.");
+                });
 
         // Lấy vị trí GPS mới nhất
         Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
