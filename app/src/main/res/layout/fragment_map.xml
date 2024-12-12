@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -14,21 +13,34 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:padding="8dp"
-        android:background="@color/white">
+        android:background="@color/white"
+        android:layout_gravity="top">
 
-        <EditText
-            android:id="@+id/location_search"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="Enter location" />
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/search_button"
-            android:layout_width="wrap_content"
+            <EditText
+                android:id="@+id/location_search"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Enter location" />
+
+            <Button
+                android:id="@+id/search_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Search" />
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/search_results_list"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Search" />
+            android:visibility="gone" />
     </LinearLayout>
 </FrameLayout>

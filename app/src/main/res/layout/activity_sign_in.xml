@@ -72,15 +72,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"/>
             <!--            ========================================================================-->
+
             <EditText
                 android:id="@+id/edt_password"
                 android:layout_width="match_parent"
-                android:background="@drawable/bgbuttongoogle"
-                android:paddingHorizontal="15dp"
                 android:layout_height="60dp"
+                android:background="@drawable/bgbuttongoogle"
                 android:drawableEnd="@drawable/password_icon"
+                android:hint="Please enter your password"
                 android:inputType="textPassword"
-                android:hint="Please enter your password"/>
+                android:paddingHorizontal="15dp" />
+
             <View
                 android:layout_width="wrap_content"
                 android:layout_height="30dp"/>
