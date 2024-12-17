@@ -161,9 +161,10 @@ public class MapFragment extends Fragment {
         });
 
         handlePermissions();
-        setupMapGestures();
+        loadMapScene();
         return view;
     }
+
     private void handlePermissions() {
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
@@ -288,7 +289,6 @@ public class MapFragment extends Fragment {
         mapPolylines.clear();
     }
 
-
     private void clearSearchMarkers() {
         for (MapMarker marker : searchMarkers) {
             mapView.getMapScene().removeMapMarker(marker);
@@ -372,19 +372,23 @@ public class MapFragment extends Fragment {
     }
 
 
+
     private void updateMapLocation(GeoCoordinates geoCoordinates) {
         if (geoCoordinates == null || mapView == null) {
             return;
         }
+
+        // Clear old markers
+        clearSearchMarkers();
 
         MapMeasure mapMeasure = new MapMeasure(MapMeasure.Kind.DISTANCE, 1000);
         mapView.getCamera().lookAt(geoCoordinates, mapMeasure);
 
         MapImage markerImage = MapImageFactory.fromResource(getResources(), R.drawable.ic_current_location);
         MapMarker currentLocationMarker = new MapMarker(geoCoordinates, markerImage);
+        searchMarkers.add(currentLocationMarker);
         mapView.getMapScene().addMapMarker(currentLocationMarker);
     }
-
     private void fetchAndDisplayPotholes() {
         DatabaseReference database = FirebaseDatabase.getInstance().getReference("potholes");
         database.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -584,7 +588,7 @@ public class MapFragment extends Fragment {
                         showToast("No route found.");
                     }
                 }
-        );;
+        );
     }
 
 
