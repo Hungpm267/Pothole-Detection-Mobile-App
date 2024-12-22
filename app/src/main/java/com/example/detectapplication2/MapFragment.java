@@ -1,6 +1,9 @@
 package com.example.detectapplication2;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -17,6 +20,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -87,6 +91,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.Iterator;
+import android.os.Build;
+
 public class MapFragment extends Fragment {
 
     private static final String TAG = MapFragment.class.getSimpleName();
@@ -105,6 +112,7 @@ public class MapFragment extends Fragment {
     private GeoCoordinates destinationLocation;
     private boolean trafficDisabled;
     private final List<MapPolyline> mapPolylines = new ArrayList<>();
+    private List<Pothole> potholesOnRoute = new ArrayList<>();
 
 
     @Override
@@ -187,7 +195,6 @@ public class MapFragment extends Fragment {
             }
         });
     }
-
 
 
     private void performSearch(String query) {
@@ -371,8 +378,6 @@ public class MapFragment extends Fragment {
         }
     }
 
-
-
     private void updateMapLocation(GeoCoordinates geoCoordinates) {
         if (geoCoordinates == null || mapView == null) {
             return;
@@ -389,9 +394,10 @@ public class MapFragment extends Fragment {
         searchMarkers.add(currentLocationMarker);
         mapView.getMapScene().addMapMarker(currentLocationMarker);
     }
+
     private void fetchAndDisplayPotholes() {
         DatabaseReference database = FirebaseDatabase.getInstance().getReference("potholes");
-        database.addListenerForSingleValueEvent(new ValueEventListener() {
+        database.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for (DataSnapshot data : snapshot.getChildren()) {
@@ -584,6 +590,8 @@ public class MapFragment extends Fragment {
                         logRouteSectionDetails(route);
                         logTollDetails(route);
                         showWaypointsOnMap(waypoints);
+                        fetchPotholesOnRoute(route); // Lọc potholes trên đường
+                        monitorPotholesOnRoute(); // Theo dõi potholes trên đường
                     } else {
                         showToast("No route found.");
                     }
@@ -591,5 +599,134 @@ public class MapFragment extends Fragment {
         );
     }
 
+    // Lọc pothole chính xác nằm trên tuyến đường
+    private void fetchPotholesOnRoute(Route route) {
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference("potholes");
+        database.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                potholesOnRoute.clear(); // Xóa dữ liệu cũ
+
+                List<GeoCoordinates> routeCoordinates = route.getGeometry().vertices; // Polyline của route
+
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    Pothole pothole = data.getValue(Pothole.class);
+                    if (pothole != null) {
+                        GeoCoordinates potholeCoordinates = new GeoCoordinates(pothole.getLatitude(), pothole.getLongitude());
+
+                        // Kiểm tra nếu pothole nằm trên tuyến đường
+                        if (isPotholeExactlyOnRoute(routeCoordinates, potholeCoordinates)) {
+                            potholesOnRoute.add(pothole);
+                        }
+                    }
+                }
+
+                // Hiển thị các pothole trên bản đồ
+                for (Pothole pothole : potholesOnRoute) {
+                    GeoCoordinates coordinates = new GeoCoordinates(pothole.getLatitude(), pothole.getLongitude());
+                    addPotholeMarker(coordinates, pothole.getLevel());
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                showToast("Error fetching pothole data.");
+            }
+        });
+    }
+
+    // Kiểm tra nếu pothole nằm chính xác trên tuyến đường
+    private boolean isPotholeExactlyOnRoute(List<GeoCoordinates> routeCoordinates, GeoCoordinates potholeCoordinates) {
+        for (int i = 0; i < routeCoordinates.size() - 1; i++) {
+            GeoCoordinates start = routeCoordinates.get(i);
+            GeoCoordinates end = routeCoordinates.get(i + 1);
+
+            // Kiểm tra khoảng cách từ pothole đến đoạn tuyến
+            if (distanceFromPointToLineSegment(potholeCoordinates, start, end) < 50) { // Độ lệch tối đa 50m
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Hàm tính khoảng cách từ điểm đến đoạn thẳng
+    private double distanceFromPointToLineSegment(GeoCoordinates point, GeoCoordinates lineStart, GeoCoordinates lineEnd) {
+        double x0 = point.latitude, y0 = point.longitude;
+        double x1 = lineStart.latitude, y1 = lineStart.longitude;
+        double x2 = lineEnd.latitude, y2 = lineEnd.longitude;
+
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+
+        double t = ((x0 - x1) * dx + (y0 - y1) * dy) / (dx * dx + dy * dy);
+        t = Math.max(0, Math.min(1, t)); // Giới hạn t trong khoảng [0, 1]
+
+        double nearestX = x1 + t * dx;
+        double nearestY = y1 + t * dy;
+
+        return distanceBetween(new GeoCoordinates(x0, y0), new GeoCoordinates(nearestX, nearestY));
+    }
+
+    // Hàm tính khoảng cách giữa hai điểm
+    private double distanceBetween(GeoCoordinates point1, GeoCoordinates point2) {
+        final int R = 6371; // Bán kính Trái Đất (kilometer)
+        double latDistance = Math.toRadians(point2.latitude - point1.latitude);
+        double lonDistance = Math.toRadians(point2.longitude - point1.longitude);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(point1.latitude)) * Math.cos(Math.toRadians(point2.latitude))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c * 1000; // Khoảng cách theo mét
+    }
+
+
+    private void monitorPotholesOnRoute() {
+        LocationManager locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            showToast("Location permission not granted.");
+            return;
+        }
+
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, location -> {
+            GeoCoordinates currentCoordinates = new GeoCoordinates(location.getLatitude(), location.getLongitude());
+            Iterator<Pothole> iterator = potholesOnRoute.iterator();
+
+            while (iterator.hasNext()) {
+                Pothole pothole = iterator.next();
+                GeoCoordinates potholeCoordinates = new GeoCoordinates(pothole.getLatitude(), pothole.getLongitude());
+                double distance = distanceBetween(currentCoordinates, potholeCoordinates);
+
+                if (distance <= 200) {
+                    showNotification("Pothole Alert", "Approaching a " + pothole.getLevel() + " pothole!");
+                }
+
+                if (distance < 50) {
+                    // Xóa pothole khỏi mảng khi đã đi qua
+                    iterator.remove();
+                    Log.d(TAG, "Pothole passed and removed: " + pothole.getLevel());
+                }
+            }
+        });
+    }
+
+    // Hiển thị Notification
+    private void showNotification(String title, String message) {
+        NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // Tạo Notification Channel (cho Android 8.0 trở lên)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("POTHOLE_ALERTS", "Pothole Alerts", NotificationManager.IMPORTANCE_HIGH);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        Notification notification = new NotificationCompat.Builder(getContext(), "POTHOLE_ALERTS")
+                .setSmallIcon(R.drawable.ic_warning) // Đặt icon
+                .setContentTitle(title)
+                .setContentText(message)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .build();
+
+        notificationManager.notify((int) System.currentTimeMillis(), notification); // Mã định danh duy nhất
+    }
 
 }

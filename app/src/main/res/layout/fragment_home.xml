@@ -72,6 +72,7 @@
                             android:orientation="vertical">
 
                             <TextView
+                                android:id="@+id/total_pothole"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="20"
@@ -212,23 +213,26 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent">
 
-                <TextView
-                    android:id="@+id/multiLineTextView"
-                    android:layout_width="wrap_content"
+
+                <ScrollView
+                    android:layout_width="200dp"
                     android:layout_height="match_parent"
-                    android:layout_gravity="center|start"
-                    android:background="@drawable/rounded_background"
-                    android:ellipsize="end"
-                    android:lineSpacingExtra="4dp"
-                    android:maxLines="7"
-                    android:paddingStart="15dp"
-                    android:paddingTop="10dp"
-                    android:text="Pothole detected: \nThis is line 2\nThis is line 3
-\nThis is line 4\nThis is line 5\nThis is line 6\nThis is line 7\nThis is line 8\nThis is line 9
-\nThis is line 10\nThis is line 11\nThis is line 12\nThis is line 13\nThis is line 14\nThis is line 15"
-                    android:textColor="#333"
-                    android:textSize="18sp"
-                    app:layout_constraintEnd_toStartOf="@id/imageViewchart" />
+                    android:layout_marginTop="10dp">
+
+                    <TextView
+                        android:id="@+id/multiLineTextView"
+                        android:layout_width="200dp"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/rounded_background"
+                        android:lineSpacingExtra="4dp"
+                        android:paddingStart="15dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="15dp"
+                        android:paddingBottom="10dp"
+                        android:text="Pothole detected: \nThis is line 2\nThis is line 3\nThis is line 4\nThis is line 5\nThis is line 6\nThis is line 7\nThis is line 8\nThis is line 9\nThis is line 10\nThis is line 11\nThis is line 12\nThis is line 13\nThis is line 14\nThis is line 15"
+                        android:textColor="#333"
+                        android:textSize="18sp" />
+                </ScrollView>
 
                 <ImageView
                     android:id="@+id/imageViewchart"

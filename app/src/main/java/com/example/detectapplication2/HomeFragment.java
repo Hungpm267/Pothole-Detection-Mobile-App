@@ -31,7 +31,7 @@ import com.google.firebase.database.ValueEventListener;
 
 public class HomeFragment extends Fragment {
     private FirebaseAuth mAuth;
-    private TextView UserName;
+    private TextView UserName, Total, multilinePotholes;
     private ImageView image1, image2, imageViewchart;
     private TextView temperatureText, humidityText, conditionText;
     private EditText cityInput;
@@ -50,6 +50,9 @@ public class HomeFragment extends Fragment {
 
         // Initialize views
         UserName = view.findViewById(R.id.username);
+        Total = view.findViewById(R.id.total_pothole);
+
+        multilinePotholes = view.findViewById(R.id.multiLineTextView);
 
         // Initialize views
         image1 = view.findViewById(R.id.pothehole);
@@ -89,17 +92,6 @@ public class HomeFragment extends Fragment {
 
             }
         });
-//        Bundle bundle = getArguments();
-//        if (bundle != null) {
-//            String userName = bundle.getString("name");
-//            if (userName != null) {
-//                UserName.setText(userName);
-//            } else {
-//                UserName.setText("Unknown User"); // Đặt giá trị mặc định nếu cần
-//            }
-//        } else {
-//            UserName.setText("No Data Found");
-//        }
 
         // Set up search button click listener
         searchButton.setOnClickListener(v -> {
@@ -111,6 +103,8 @@ public class HomeFragment extends Fragment {
 
         // Fetch weather for Saigon on startup
         new GetWeatherTask("Saigon").execute();
+
+        fetchPotholesData(multilinePotholes);
 
         return view;
     }
@@ -161,5 +155,39 @@ public class HomeFragment extends Fragment {
         }
 
     }
+
+    private void fetchPotholesData(TextView multilinePotholes) {
+        DatabaseReference potholesRef = FirebaseDatabase.getInstance().getReference("potholes");
+
+        potholesRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int totalPotholes = 0;
+                StringBuilder potholeDetails = new StringBuilder();
+
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    totalPotholes++;
+
+                    // Lấy thông tin địa chỉ từ database
+                    String address = data.child("address").getValue(String.class);
+
+                    // Thêm STT và địa chỉ vào danh sách hiển thị
+                    potholeDetails.append(totalPotholes).append(". ").append(address).append("\n");
+                }
+
+                // Hiển thị tổng số pothole
+                Total.setText("Total Potholes: " + totalPotholes);
+
+                // Hiển thị danh sách pothole
+                multilinePotholes.setText(potholeDetails.toString());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getActivity(), "Error fetching potholes data.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 
 }
