@@ -13,7 +13,7 @@ import android.widget.Toast;
 
 public class SettingFragment extends Fragment {
     TextView txt_logout;
-    TextView tv_edit_profile;
+    TextView tv_edit_profile, tv_policies;
 
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
@@ -51,6 +51,7 @@ public class SettingFragment extends Fragment {
 
         txt_logout = view.findViewById(R.id.txt_logout);
         tv_edit_profile = view.findViewById(R.id.tv_edit_profile);
+        tv_policies = view.findViewById(R.id.tv_policies);
 
         txt_logout.setOnClickListener(v -> {
             Intent myintent = new Intent(getActivity(), MainActivity.class);
@@ -62,6 +63,11 @@ public class SettingFragment extends Fragment {
         });
         tv_edit_profile.setOnClickListener(v -> {
             Intent myintent = new Intent(getActivity(), Profile.class);
+            startActivity(myintent);
+        });
+
+        tv_policies.setOnClickListener(v -> {
+            Intent myintent = new Intent(getActivity(), Policies.class);
             startActivity(myintent);
         });
 

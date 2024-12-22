@@ -120,6 +120,7 @@
                     android:drawableStart="@drawable/help_icon"
                     android:fontFamily="sans-serif-medium"/>
                 <TextView
+                    android:id="@+id/tv_policies"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Terms &amp; Policies"

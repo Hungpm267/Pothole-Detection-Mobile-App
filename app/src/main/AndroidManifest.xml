@@ -36,6 +36,9 @@
             android:name=".Profile"
             android:exported="false" />
         <activity
+            android:name=".Policies"
+            android:exported="false" />
+        <activity
             android:name=".EditProfile"
             android:exported="false" />
         <activity
