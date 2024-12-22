@@ -2,6 +2,7 @@ package com.example.detectapplication2;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -9,6 +10,7 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -30,6 +32,9 @@ public class SignInActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private boolean isPasswordVisible = false;
     private final String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
+    private CheckBox chkRememberMe;
+    private SharedPreferences sharedPreferences;
+    private static final String PREFS_NAME = "LoginPrefs";
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -56,6 +61,25 @@ public class SignInActivity extends AppCompatActivity {
             }
             return false;
         });
+
+        if (sharedPreferences.getBoolean("remember", false)) {
+            String savedUid = sharedPreferences.getString("uid", "");
+            String savedName = sharedPreferences.getString("name", "");
+            String savedEmail = sharedPreferences.getString("email", "");
+            String savedPassword = sharedPreferences.getString("password", "");
+
+            edtEmail.setText(savedEmail);
+            edtPassword.setText(savedPassword);
+            chkRememberMe.setChecked(true);
+
+            // Tự động chuyển đến màn hình chính
+            Intent intent = new Intent(SignInActivity.this, MainActivity2.class);
+            intent.putExtra("uid", savedUid);
+            intent.putExtra("name", savedName);
+            intent.putExtra("email", savedEmail);
+            startActivity(intent);
+            finish();
+        }
     }
 
     private void initViews() {
@@ -63,6 +87,9 @@ public class SignInActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btn_login);
         edtEmail = findViewById(R.id.edt_email);
         edtPassword = findViewById(R.id.edt_password);
+
+        chkRememberMe = findViewById(R.id.ckb_remember);
+        sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
     }
 
     private void initListeners() {
@@ -131,20 +158,21 @@ public class SignInActivity extends AppCompatActivity {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                                     if (snapshot.exists()) {
+                                        String name = snapshot.child("name").getValue(String.class);
+                                        String emailFromDB = snapshot.child("email").getValue(String.class);
+
                                         Intent intent = new Intent(SignInActivity.this, MainActivity2.class);
-//                                        // Lấy thông tin từ Realtime Database
-//                                        String nameFromDB = snapshot.child("name").getValue(String.class);
-//                                        String emailFromDB = snapshot.child("email").getValue(String.class);
-//                                        String passwordFromDB = snapshot.child("password").getValue(String.class);
-                                        //Chuyển sang MainActivity2 và truyền dữ liệu
-//                                        intent.putExtra("uid", uid); // Truyền UID
-//                                        Log.d("uid", "Logged-in User: " + uid);
-//                                        intent.putExtra("name", nameFromDB); // Truyền tên
-//                                        Log.d("Name", "Logged-in User: " + nameFromDB);
-//                                        intent.putExtra("email", emailFromDB); // Truyền email
-//                                        Log.d("Email", "Logged-in User: " + emailFromDB);
-//                                        intent.putExtra("password", passwordFromDB); // Truyền mật khẩu
-//                                        Log.d("Pass", "Logged-in User: " + passwordFromDB);
+                                        if (chkRememberMe.isChecked()) {
+                                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                                            editor.putBoolean("remember", true);
+                                            editor.putString("uid", uid);
+                                            editor.putString("name", name);
+                                            editor.putString("email", emailFromDB);
+                                            editor.putString("password", password);
+                                            editor.apply();
+                                        } else {
+                                            clearSharedPreferences();
+                                        }
                                         startActivity(intent);
                                         finish();
                                     } else {
@@ -231,6 +259,12 @@ public class SignInActivity extends AppCompatActivity {
 
         // Đặt lại con trỏ ở cuối văn bản
         edtPassword.setSelection(edtPassword.getText().length());
+    }
+
+    private void clearSharedPreferences() {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.clear();
+        editor.apply();
     }
 
 }
