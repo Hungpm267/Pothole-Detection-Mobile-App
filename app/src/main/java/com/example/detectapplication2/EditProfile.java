@@ -1,7 +1,11 @@
 package com.example.detectapplication2;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.InputType;
+import android.view.MotionEvent;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -23,12 +27,14 @@ public class EditProfile extends AppCompatActivity {
     EditText edtEmail, edtUsername, edtPassword, edtCPassword;
     private FirebaseAuth mAuth;
     private String uid;
+    private boolean isPasswordVisible = false;
 
     // Biến để lưu thông tin ban đầu từ Realtime Database
     private String originalUsername = "";
     private String originalEmail = "";
     private String originalPassword = "";
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,6 +95,28 @@ public class EditProfile extends AppCompatActivity {
                 startActivity(intent);
                 finish();
             }
+        });
+
+        edtPassword.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                Drawable drawableEnd = edtPassword.getCompoundDrawables()[2]; // Lấy drawableEnd
+                if (drawableEnd != null && event.getRawX() >= (edtPassword.getRight() - drawableEnd.getBounds().width())) {
+                    togglePasswordVisibility(edtPassword);
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        edtCPassword.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                Drawable drawableEnd = edtCPassword.getCompoundDrawables()[2]; // Lấy drawableEnd
+                if (drawableEnd != null && event.getRawX() >= (edtCPassword.getRight() - drawableEnd.getBounds().width())) {
+                    togglePasswordVisibility(edtCPassword);
+                    return true;
+                }
+            }
+            return false;
         });
     }
 
@@ -157,5 +185,21 @@ public class EditProfile extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    private void togglePasswordVisibility(EditText edtPassword) {
+        if (isPasswordVisible) {
+            // Chuyển về dạng ẩn mật khẩu
+            edtPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            edtPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.password_icon, 0);
+        } else {
+            // Chuyển về dạng hiện mật khẩu
+            edtPassword.setInputType(InputType.TYPE_CLASS_TEXT);
+            edtPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.password_icon, 0);
+        }
+        isPasswordVisible = !isPasswordVisible;
+
+        // Đặt lại con trỏ ở cuối văn bản
+        edtPassword.setSelection(edtPassword.getText().length());
     }
 }
