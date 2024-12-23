@@ -43,16 +43,6 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:text="RADIUS"
-                    android:textColor="#282323"
-                    android:textSize="18sp"
-                    android:gravity="center"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
                     android:text="DISTANCE"
                     android:textColor="#282323"
 
@@ -68,35 +58,6 @@
                 android:orientation="vertical">
 
                 <!-- Hàng 1 -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingVertical="8dp">
-
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/image8"
-                        android:contentDescription="Warning" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        android:text="13cm"
-                        android:textColor="#2A2626"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="200m"
-                        android:textColor="#332E2E"
-                        android:textSize="16sp" />
-                </LinearLayout>
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
@@ -106,31 +67,27 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:paddingVertical="8dp">
-
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/image12"
-                        android:contentDescription="Warning" />
+                    android:paddingVertical="8dp"/>
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="10dp">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:id="@+id/potholeListTextView"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        android:text="20cm"
-                        android:textColor="#2A2626"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="400m"
-                        android:textColor="#332E2E"
-                        android:textSize="16sp" />
-                </LinearLayout>
+                        android:background="@drawable/rounded_background"
+                        android:lineSpacingExtra="4dp"
+                        android:padding="10dp"
+                        android:paddingStart="15dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="15dp"
+                        android:paddingBottom="10dp"
+                        android:text="Pothole detected:"
+                        android:textColor="#333"
+                        android:textSize="18sp" />
+                </ScrollView>
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
