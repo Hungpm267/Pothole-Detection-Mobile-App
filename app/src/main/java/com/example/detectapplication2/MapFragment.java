@@ -323,16 +323,6 @@ public class MapFragment extends Fragment {
         mapView.getMapScene().addMapMarker(mapMarker);
     }
 
-    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371; // Bán kính Trái Đất (kilometer)
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c; // Khoảng cách theo km
-    }
 
     private void requestCurrentLocation() {
         locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
@@ -340,19 +330,6 @@ public class MapFragment extends Fragment {
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(location -> {
-                    if (location != null) {
-                        currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
-                        moveCameraToCurrentLocation();
-                    } else {
-                        showToast("Unable to retrieve current location.");
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error fetching location: " + e.getMessage());
-                    showToast("Error fetching location.");
-                });
 
         // Get the latest GPS location
         Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -368,17 +345,12 @@ public class MapFragment extends Fragment {
                     // Move camera to current location
                     currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
                     moveCameraToCurrentLocation();
+                    updatePolylineAndMarker();
                     locationManager.removeUpdates(this); // Stop listening
                 }
             });
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, new LocationListener() {
-            @Override
-            public void onLocationChanged(@NonNull Location location) {
-                currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
-                updatePolylineAndMarker();
-            }
-        });
+
     }
 
     private void moveCameraToCurrentLocation() {
@@ -406,10 +378,9 @@ public class MapFragment extends Fragment {
             // Add new polyline
             calculateRoute(currentLocation, destinationCoordinates);
 
-            // Add new marker at the current location
-            MapImage markerImage = MapImageFactory.fromResource(getResources(), R.drawable.ic_current_location);
-            currentLocationMarker = new MapMarker(currentLocation, markerImage);
-            mapView.getMapScene().addMapMarker(currentLocationMarker);
+            // Add new marker at the current location|
+
+
         }
     }
     private void updateMapLocation(GeoCoordinates geoCoordinates) {
@@ -464,21 +435,7 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void setupMapGestures() {
-        mapView.getGestures().setTapListener(touchPoint -> {
-            GeoCoordinates tappedCoordinates = mapView.viewToGeoCoordinates(touchPoint);
-            if (tappedCoordinates != null) {
-                destinationLocation = tappedCoordinates;
-                showToast("Destination set: " + tappedCoordinates.latitude + ", " + tappedCoordinates.longitude);
-                addDestinationMarker(tappedCoordinates); // Thêm marker tại điểm đích
-            }
-            if (currentLocation != null) {
-                calculateRoute(currentLocation, destinationLocation);
-            } else {
-                showToast("Current location is not available.");
-            }
-        });
-    }
+
 
     private void addDestinationMarker(GeoCoordinates coordinates) {
         MapImage markerImage = MapImageFactory.fromResource(getResources(), R.drawable.ic_current_location);
