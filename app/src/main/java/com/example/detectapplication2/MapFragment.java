@@ -26,6 +26,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.tasks.OnCanceledListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.OnFailureListener;
 
@@ -337,8 +338,15 @@ public class MapFragment extends Fragment {
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, new LocationListener() {
+   fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+            if (location != null) {
+                currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
+                moveCameraToCurrentLocation();
+            } else {
+                Log.e(TAG, "Last location is null.");
+            }
+        });
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 50, 10, new LocationListener() {
             @Override
             public void onLocationChanged(@NonNull Location location) {
                 currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
@@ -364,8 +372,10 @@ public class MapFragment extends Fragment {
     }
     private void updatePolylineAndMarker() {
         if (currentLocation != null && destinationCoordinates != null) {
-            // Clear old polyline and marker
+            // Clear old polyline
             clearPolylines();
+
+            // Remove old marker
             if (currentLocationMarker != null) {
                 mapView.getMapScene().removeMapMarker(currentLocationMarker);
             }
