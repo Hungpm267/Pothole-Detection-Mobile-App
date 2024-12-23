@@ -209,7 +209,6 @@
                 android:layout_height="220dp"
                 app:cardCornerRadius="15dp"
                 android:layout_marginTop="20dp"
-                app:layout_sum_weight="3"
                 app:layout_constraintTop_toBottomOf="@+id/weatherSection"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent">
