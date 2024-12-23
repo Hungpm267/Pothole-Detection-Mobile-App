@@ -338,38 +338,13 @@ public class MapFragment extends Fragment {
             return;
         }
 
-        fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(location -> {
-                    if (location != null) {
-                        currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
-                        moveCameraToCurrentLocation();
-                    } else {
-                        showToast("Unable to retrieve current location.");
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error fetching location: " + e.getMessage());
-                    showToast("Error fetching location.");
-                });
-
-        // Lấy vị trí GPS mới nhất
-        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-        if (location != null) {
-            // Di chuyển camera tới vị trí hiện tại
-            currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
-            moveCameraToCurrentLocation();
-        } else {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, new LocationListener() {
-                @Override
-                public void onLocationChanged(@NonNull Location location) {
-                    // Di chuyển camera tới vị trí hiện tại
-                    currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
-                    moveCameraToCurrentLocation();
-                    locationManager.removeUpdates(this); // Dừng lắng nghe
-                }
-            });
-        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, new LocationListener() {
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
+                updatePolylineAndMarker();
+            }
+        });
     }
 
     private void moveCameraToCurrentLocation() {
@@ -387,7 +362,23 @@ public class MapFragment extends Fragment {
             mapView.getMapScene().addMapMarker(currentLocationMarker);
         }
     }
+    private void updatePolylineAndMarker() {
+        if (currentLocation != null && destinationCoordinates != null) {
+            // Clear old polyline and marker
+            clearPolylines();
+            if (currentLocationMarker != null) {
+                mapView.getMapScene().removeMapMarker(currentLocationMarker);
+            }
 
+            // Add new polyline
+            calculateRoute(currentLocation, destinationCoordinates);
+
+            // Add new marker at the current location
+            MapImage markerImage = MapImageFactory.fromResource(getResources(), R.drawable.ic_current_location);
+            currentLocationMarker = new MapMarker(currentLocation, markerImage);
+            mapView.getMapScene().addMapMarker(currentLocationMarker);
+        }
+    }
     private void updateMapLocation(GeoCoordinates geoCoordinates) {
         if (geoCoordinates == null || mapView == null) {
             return;
