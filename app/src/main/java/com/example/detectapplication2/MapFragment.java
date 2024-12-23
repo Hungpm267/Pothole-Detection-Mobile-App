@@ -345,7 +345,7 @@ public class MapFragment extends Fragment {
                     // Move camera to current location
                     currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
                     moveCameraToCurrentLocation();
-                    updatePolylineAndMarker();
+                    updatePolyline();
                     locationManager.removeUpdates(this); // Stop listening
                 }
             });
@@ -367,22 +367,7 @@ public class MapFragment extends Fragment {
             mapView.getMapScene().addMapMarker(currentLocationMarker);
         }
     }
-    private void updatePolylineAndMarker() {
-        if (currentLocation != null && destinationCoordinates != null) {
-            // Clear old polyline and marker
-            clearPolylines();
-            if (currentLocationMarker != null) {
-                mapView.getMapScene().removeMapMarker(currentLocationMarker);
-            }
 
-            // Add new polyline
-            calculateRoute(currentLocation, destinationCoordinates);
-
-            // Add new marker at the current location|
-
-
-        }
-    }
     private void updateMapLocation(GeoCoordinates geoCoordinates) {
         if (geoCoordinates == null || mapView == null) {
             return;
@@ -541,15 +526,42 @@ public class MapFragment extends Fragment {
             }
         }
     }
+    private void updatePolyline() {
+        if (currentLocation != null && destinationCoordinates != null) {
+            // Clear old polyline
+            clearPolylines();
+
+            // Add new polyline
+            calculateRoute(currentLocation, destinationCoordinates);
+        }
+    }
     private void setupPolylineHoverListener(Route route) {
         mapView.getGestures().setTapListener(touchPoint -> {
             Point2D point2D = new Point2D(touchPoint.x, touchPoint.y);
             GeoCoordinates tappedCoordinates = mapView.viewToGeoCoordinates(point2D);
             if (tappedCoordinates != null && isPointOnPolyline(tappedCoordinates, route.getGeometry().vertices)) {
-                long estimatedTravelTimeInSeconds = route.getDuration().getSeconds();
-                long estimatedTravelTimeInMinutes = estimatedTravelTimeInSeconds / 60;
-                String estimatedTimeText = "Thời gian dự kiến: " + estimatedTravelTimeInMinutes + " mins";
-                showToast(estimatedTimeText);
+                // Recalculate the route from the current location to the destination
+                if (currentLocation != null && destinationCoordinates != null) {
+                    List<Waypoint> waypoints = new ArrayList<>();
+                    waypoints.add(new Waypoint(currentLocation));
+                    waypoints.add(new Waypoint(destinationCoordinates));
+
+                    routingEngine.calculateRoute(
+                            waypoints,
+                            getCarOptions(),
+                            (routingError, routes) -> {
+                                if (routingError == null) {
+                                    Route newRoute = routes.get(0);
+                                    long estimatedTravelTimeInSeconds = newRoute.getDuration().getSeconds();
+                                    long estimatedTravelTimeInMinutes = estimatedTravelTimeInSeconds / 60;
+                                    String estimatedTimeText = "Thời gian dự kiến: " + estimatedTravelTimeInMinutes + " mins";
+                                    showToast(estimatedTimeText);
+                                } else {
+                                    showToast("No route found.");
+                                }
+                            }
+                    );
+                }
             }
         });
     }
@@ -607,11 +619,7 @@ public class MapFragment extends Fragment {
                         logRouteRailwayCrossingDetails(route);
                         logRouteSectionDetails(route);
                         logTollDetails(route);
-                        // hien thi thoi gian du kien
-                    //  long estimatedTravelTimeInSeconds = route.getDuration().getSeconds();
-                  //    long estimatedTravelTimeInMinutes = estimatedTravelTimeInSeconds / 60;
-                    //  estimatedTimeTextView.setText("Thời gian dự kiến: " + estimatedTravelTimeInMinutes + " mins");
-                    //  estimatedTimeTextView.setVisibility(View.VISIBLE)
+
                         showWaypointsOnMap(waypoints);
                         fetchPotholesOnRoute(route); // Lọc potholes trên đường
                         monitorPotholesOnRoute(); // Theo dõi potholes trên đường
