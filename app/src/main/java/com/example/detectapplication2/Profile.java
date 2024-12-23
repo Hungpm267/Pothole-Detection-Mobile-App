@@ -1,10 +1,15 @@
 package com.example.detectapplication2;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,7 +27,9 @@ public class Profile extends AppCompatActivity {
     private Button btnEdit, btnBack;
     private FirebaseAuth mAuth;
     private String uid;
+    private boolean isPasswordVisible = false;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +70,17 @@ public class Profile extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        tvPassword.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                Drawable drawableEnd = tvPassword.getCompoundDrawables()[2]; // Lấy drawableEnd
+                if (drawableEnd != null && event.getRawX() >= (tvPassword.getRight() - drawableEnd.getBounds().width())) {
+                    togglePasswordVisibility(tvPassword);
+                    return true;
+                }
+            }
+            return false;
+        });
     }
 
     private void getUserDataFromDatabase() {
@@ -90,4 +108,18 @@ public class Profile extends AppCompatActivity {
             }
         });
     }
+
+    private void togglePasswordVisibility(TextView tvPassword) {
+        if (isPasswordVisible) {
+            // Chuyển về dạng ẩn mật khẩu
+            tvPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            tvPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.password_icon, 0);
+        } else {
+            // Chuyển về dạng hiện mật khẩu
+            tvPassword.setInputType(InputType.TYPE_CLASS_TEXT);
+            tvPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.password_icon, 0);
+        }
+        isPasswordVisible = !isPasswordVisible;
+    }
+
 }
