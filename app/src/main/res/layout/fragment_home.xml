@@ -209,7 +209,7 @@
                 android:layout_height="220dp"
                 app:cardCornerRadius="15dp"
                 android:layout_marginTop="20dp"
-                app:layout_constraintHorizontal_weight="2"
+                app:layout_sum_weight="3"
                 app:layout_constraintTop_toBottomOf="@+id/weatherSection"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent">
@@ -218,7 +218,7 @@
                 <ScrollView
                     android:layout_width="200dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
+                    android:layout_weight="2"
                     android:layout_marginTop="10dp">
 
                     <TextView
@@ -238,13 +238,13 @@
 
                 <ImageView
                     android:id="@+id/imageViewchart"
-                    android:layout_width="wrap_content"
-                    android:layout_height="140dp"
+                    android:layout_width="115dp"
+                    android:layout_height="123dp"
                     android:layout_gravity="center|end"
                     android:layout_marginEnd="7dp"
+                    android:layout_weight="1"
                     android:adjustViewBounds="true"
                     android:onClick="clickmeok"
-                    android:layout_weight="1"
                     android:src="@drawable/piechart_img" />
             </androidx.cardview.widget.CardView>
 
