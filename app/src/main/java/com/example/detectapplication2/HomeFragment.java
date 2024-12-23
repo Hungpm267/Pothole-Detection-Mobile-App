@@ -102,7 +102,7 @@ public class HomeFragment extends Fragment {
         });
 
         // Fetch weather for Saigon on startup
-        new GetWeatherTask("Saigon").execute();
+        new GetWeatherTask("Binh Duong").execute();
 
         fetchPotholesData(multilinePotholes);
 
@@ -149,11 +149,15 @@ public class HomeFragment extends Fragment {
                 humidityText.setText("Humidity: " + humidity + "%");
                 conditionText.setText("Condition: " + weatherCondition);
 
+                // kiểm tra thời tiết xấu thì hiển thị thông báo ra đường làm gì
+                if (weatherCondition.contains("rain") || weatherCondition.contains("storm") || weatherCondition.contains("snow")) {
+                    Toast.makeText(getActivity(), "Thời tiết đang xấu bạn nên hạn chế ra ngoài", Toast.LENGTH_LONG).show();
+                }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-
     }
 
     private void fetchPotholesData(TextView multilinePotholes) {
@@ -188,6 +192,4 @@ public class HomeFragment extends Fragment {
             }
         });
     }
-
-
 }

@@ -43,4 +43,12 @@
             android:layout_height="wrap_content"
             android:visibility="gone" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/estimated_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_gravity="top|end"
+        android:visibility="gone" />
 </FrameLayout>

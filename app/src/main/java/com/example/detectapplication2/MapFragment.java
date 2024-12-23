@@ -6,6 +6,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -16,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -36,9 +39,11 @@ import com.google.firebase.database.ValueEventListener;
 import com.here.sdk.core.Color;
 import com.here.sdk.core.GeoCoordinates;
 import com.here.sdk.core.GeoPolyline;
+import com.here.sdk.core.Point2D;
 import com.here.sdk.core.engine.SDKNativeEngine;
 import com.here.sdk.core.engine.SDKOptions;
 import com.here.sdk.core.errors.InstantiationErrorException;
+import com.here.sdk.gestures.GestureState;
 import com.here.sdk.mapview.LineCap;
 import com.here.sdk.mapview.MapError;
 import com.here.sdk.mapview.MapImage;
@@ -110,6 +115,8 @@ public class MapFragment extends Fragment {
     private GeoCoordinates currentLocation = null; // Tọa độ hiện tại
     private RoutingEngine routingEngine;
     private GeoCoordinates destinationLocation;
+    private TextView estimatedTimeTextView;
+    private GeoCoordinates destinationCoordinates;
     private boolean trafficDisabled;
     private final List<MapPolyline> mapPolylines = new ArrayList<>();
     private List<Pothole> potholesOnRoute = new ArrayList<>();
@@ -137,6 +144,7 @@ public class MapFragment extends Fragment {
     }
 
 
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
@@ -149,6 +157,7 @@ public class MapFragment extends Fragment {
         EditText locationSearch = view.findViewById(R.id.location_search);
         Button searchButton = view.findViewById(R.id.search_button);
         searchResultsList = view.findViewById(R.id.search_results_list);
+        estimatedTimeTextView = view.findViewById(R.id.estimated_time);
 
         searchButton.setOnClickListener(v -> {
             String query = locationSearch.getText().toString().trim();
@@ -161,6 +170,7 @@ public class MapFragment extends Fragment {
 
         searchResultsList.setOnItemClickListener((parent, view1, position, id) -> {
             GeoCoordinates selectedCoordinates = searchResultsCoordinates.get(position);
+            destinationCoordinates = selectedCoordinates;
             updateMapLocation(selectedCoordinates);
             searchResultsList.setVisibility(View.GONE);
             clearPolylines();
@@ -527,6 +537,10 @@ public class MapFragment extends Fragment {
         }
         mapView.getMapScene().addMapPolyline(routeMapPolyline);
         mapPolylines.add(routeMapPolyline);
+
+        // Set up the polyline hover listener
+        setupPolylineHoverListener(route);
+
         List<Section> sections = route.getSections();
         for (Section section : sections) {
             logManeuverInstructions(section);
@@ -546,7 +560,30 @@ public class MapFragment extends Fragment {
             }
         }
     }
+    private void setupPolylineHoverListener(Route route) {
+        mapView.getGestures().setTapListener(touchPoint -> {
+            Point2D point2D = new Point2D(touchPoint.x, touchPoint.y);
+            GeoCoordinates tappedCoordinates = mapView.viewToGeoCoordinates(point2D);
+            if (tappedCoordinates != null && isPointOnPolyline(tappedCoordinates, route.getGeometry().vertices)) {
+                long estimatedTravelTimeInSeconds = route.getDuration().getSeconds();
+                long estimatedTravelTimeInMinutes = estimatedTravelTimeInSeconds / 60;
+                String estimatedTimeText = "Thời gian dự kiến: " + estimatedTravelTimeInMinutes + " mins";
+                showToast(estimatedTimeText);
+            }
+        });
+    }
 
+
+    private boolean isPointOnPolyline(GeoCoordinates point, List<GeoCoordinates> polyline) {
+        for (int i = 0; i < polyline.size() - 1; i++) {
+            GeoCoordinates start = polyline.get(i);
+            GeoCoordinates end = polyline.get(i + 1);
+            if (distanceFromPointToLineSegment(point, start, end) < 50) { // Adjust the threshold as needed
+                return true;
+            }
+        }
+        return false;
+    }
     private void logManeuverInstructions(Section section) {
         Log.d(TAG, "Log maneuver instructions per route section:");
         List<Maneuver> maneuverInstructions = section.getManeuvers();
@@ -589,6 +626,11 @@ public class MapFragment extends Fragment {
                         logRouteRailwayCrossingDetails(route);
                         logRouteSectionDetails(route);
                         logTollDetails(route);
+                        // hien thi thoi gian du kien
+                    //  long estimatedTravelTimeInSeconds = route.getDuration().getSeconds();
+                  //    long estimatedTravelTimeInMinutes = estimatedTravelTimeInSeconds / 60;
+                    //  estimatedTimeTextView.setText("Thời gian dự kiến: " + estimatedTravelTimeInMinutes + " mins");
+                    //  estimatedTimeTextView.setVisibility(View.VISIBLE)
                         showWaypointsOnMap(waypoints);
                         fetchPotholesOnRoute(route); // Lọc potholes trên đường
                         monitorPotholesOnRoute(); // Theo dõi potholes trên đường
