@@ -2,41 +2,73 @@ package com.example.detectapplication2;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
-    EditText edt_email;
-    Button btn_back, btn_continue;
+
+    private EditText edtEmail;
+    private Button btnContinue, btnBack;
+    private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_forgot_password);
 
-        edt_email = findViewById(R.id.edt_email);
-        btn_back = findViewById(R.id.btn_back);
-        btn_continue = findViewById(R.id.btn_continue);
+        // Khởi tạo các thành phần
+        edtEmail = findViewById(R.id.edt_email);
+        btnContinue = findViewById(R.id.btn_continue);
+        btnBack = findViewById(R.id.btn_back);
+        mAuth = FirebaseAuth.getInstance();
 
-        btn_back.setOnClickListener(v -> {
-            // Xử lý khi nút "Back" được nhấn
+        // Gửi yêu cầu đặt lại mật khẩu
+        btnContinue.setOnClickListener(v -> {
+            String email = edtEmail.getText().toString().trim();
+            if (TextUtils.isEmpty(email)) {
+                edtEmail.setError("Vui lòng nhập email");
+                return;
+            }
+            sendResetPasswordEmail(email);
+        });
+
+        // Quay lại màn hình trước
+        btnBack.setOnClickListener(v -> {
+            Intent intent = new Intent(ForgotPasswordActivity.this, MainActivity.class);
+            startActivity(intent);
             finish();
         });
-        btn_continue.setOnClickListener(v -> {
-            // Xử lý khi nút "Continue" được nhấn
-            String email = edt_email.getText().toString();
-            // xử lý vụ otp backend
-
-
-            // chuyển sang màn hình otp
-            Intent myintent = new Intent(this, OtpActivity.class);
-            startActivity(myintent);
-        });
     }
+
+    private void sendResetPasswordEmail(String email) {
+        mAuth.sendPasswordResetEmail(email)
+                .addOnSuccessListener(unused -> {
+                    Toast.makeText(
+                            ForgotPasswordActivity.this,
+                            "Liên kết đặt lại mật khẩu đã được gửi đến email của bạn",
+                            Toast.LENGTH_SHORT
+                    ).show();
+
+                    // Chuyển về MainActivity sau khi gửi thành công
+                    Intent intent = new Intent(ForgotPasswordActivity.this, MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(e -> Toast.makeText(
+                        ForgotPasswordActivity.this,
+                        "Lỗi khi gửi email: " + e.getMessage(),
+                        Toast.LENGTH_SHORT
+                ).show());
+    }
+
 }

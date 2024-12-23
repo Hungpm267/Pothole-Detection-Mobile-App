@@ -22,7 +22,6 @@ public class MainActivity extends AppCompatActivity {
 
         btnSignIn = findViewById(R.id.btn_signin);
         btnSignUp = findViewById(R.id.btn_signup);
-        btnGoogle = findViewById(R.id.btn_google);
         txtForgotPassword = findViewById(R.id.txt_quenmk);
 
         btnSignIn.setOnClickListener(v -> {
