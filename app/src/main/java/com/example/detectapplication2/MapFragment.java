@@ -26,7 +26,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.gms.tasks.OnCanceledListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.OnFailureListener;
 
@@ -99,6 +98,9 @@ import java.util.List;
 
 import java.util.Iterator;
 import android.os.Build;
+
+import android.os.Handler;
+import android.os.Looper;
 
 public class MapFragment extends Fragment {
 
@@ -189,7 +191,7 @@ public class MapFragment extends Fragment {
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         } else {
             loadMapScene();
-            requestCurrentLocation(); // Lấy vị trí hiện tại và cập nhật bản đồ
+            requestCurrentLocation(); // Retrieve current location and update the map
         }
     }
 
@@ -202,7 +204,7 @@ public class MapFragment extends Fragment {
                 // Chỉ di chuyển camera đến vị trí hiện tại
                 requestCurrentLocation();
                 // Hiển thị pothole sau khi đã di chuyển camera
-                fetchAndDisplayPotholes();
+                //fetchAndDisplayPotholes();
             }
         });
     }
@@ -338,15 +340,39 @@ public class MapFragment extends Fragment {
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-   fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
-            if (location != null) {
-                currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
-                moveCameraToCurrentLocation();
-            } else {
-                Log.e(TAG, "Last location is null.");
-            }
-        });
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 50, 10, new LocationListener() {
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(location -> {
+                    if (location != null) {
+                        currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
+                        moveCameraToCurrentLocation();
+                    } else {
+                        showToast("Unable to retrieve current location.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching location: " + e.getMessage());
+                    showToast("Error fetching location.");
+                });
+
+        // Get the latest GPS location
+        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+        if (location != null) {
+            // Move camera to current location
+            currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
+            moveCameraToCurrentLocation();
+        } else {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, new LocationListener() {
+                @Override
+                public void onLocationChanged(@NonNull Location location) {
+                    // Move camera to current location
+                    currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
+                    moveCameraToCurrentLocation();
+                    locationManager.removeUpdates(this); // Stop listening
+                }
+            });
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, new LocationListener() {
             @Override
             public void onLocationChanged(@NonNull Location location) {
                 currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
@@ -360,9 +386,8 @@ public class MapFragment extends Fragment {
             MapMeasure mapMeasure = new MapMeasure(MapMeasure.Kind.DISTANCE, 1000); // Zoom level
             mapView.getCamera().lookAt(currentLocation, mapMeasure);
 
-            // Thêm marker cho vị trí hiện tại
-            MapImage markerImage = MapImageFactory
-                    .fromResource(getResources(), R.drawable.ic_current_location);
+            // Add marker for current location
+            MapImage markerImage = MapImageFactory.fromResource(getResources(), R.drawable.ic_current_location);
             if (currentLocationMarker != null) {
                 mapView.getMapScene().removeMapMarker(currentLocationMarker);
             }
@@ -372,10 +397,8 @@ public class MapFragment extends Fragment {
     }
     private void updatePolylineAndMarker() {
         if (currentLocation != null && destinationCoordinates != null) {
-            // Clear old polyline
+            // Clear old polyline and marker
             clearPolylines();
-
-            // Remove old marker
             if (currentLocationMarker != null) {
                 mapView.getMapScene().removeMapMarker(currentLocationMarker);
             }
@@ -664,10 +687,39 @@ public class MapFragment extends Fragment {
                     }
                 }
 
+                if (!routeCoordinates.isEmpty()) {
+                    GeoCoordinates startCoordinates = routeCoordinates.get(0);
+                    GeoCoordinates endCoordinates = routeCoordinates.get(routeCoordinates.size() - 1);
+
+                    addPotholeAtCoordinates(startCoordinates);
+                    addPotholeAtCoordinates(endCoordinates);
+                }
+
                 // Hiển thị các pothole trên bản đồ
                 for (Pothole pothole : potholesOnRoute) {
                     GeoCoordinates coordinates = new GeoCoordinates(pothole.getLatitude(), pothole.getLongitude());
                     addPotholeMarker(coordinates, pothole.getLevel());
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                showToast("Error fetching pothole data.");
+            }
+        });
+    }
+
+    private void addPotholeAtCoordinates(GeoCoordinates coordinates) {
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference("potholes");
+        database.orderByChild("latitude").equalTo(coordinates.latitude).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    Pothole pothole = data.getValue(Pothole.class);
+                    if (pothole != null && pothole.getLongitude() == coordinates.longitude) {
+                        potholesOnRoute.add(pothole);
+                        break;
+                    }
                 }
             }
 
@@ -730,26 +782,43 @@ public class MapFragment extends Fragment {
             return;
         }
 
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, location -> {
-            GeoCoordinates currentCoordinates = new GeoCoordinates(location.getLatitude(), location.getLongitude());
-            Iterator<Pothole> iterator = potholesOnRoute.iterator();
-
-            while (iterator.hasNext()) {
-                Pothole pothole = iterator.next();
-                GeoCoordinates potholeCoordinates = new GeoCoordinates(pothole.getLatitude(), pothole.getLongitude());
-                double distance = distanceBetween(currentCoordinates, potholeCoordinates);
-
-                if (distance <= 200) {
-                    showNotification("Pothole Alert", "Approaching a " + pothole.getLevel() + " pothole!");
+        Handler handler = new Handler(Looper.getMainLooper());
+        Runnable notificationRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    showToast("Location permission not granted.");
+                    return;
                 }
 
-                if (distance < 50) {
-                    // Xóa pothole khỏi mảng khi đã đi qua
-                    iterator.remove();
-                    Log.d(TAG, "Pothole passed and removed: " + pothole.getLevel());
-                }
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, location -> {
+                    GeoCoordinates currentCoordinates = new GeoCoordinates(location.getLatitude(), location.getLongitude());
+                    Iterator<Pothole> iterator = potholesOnRoute.iterator();
+
+                    while (iterator.hasNext()) {
+                        Pothole pothole = iterator.next();
+                        GeoCoordinates potholeCoordinates = new GeoCoordinates(pothole.getLatitude(), pothole.getLongitude());
+                        double distance = distanceBetween(currentCoordinates, potholeCoordinates);
+
+                        if (distance <= 100) {
+                            showNotification("Pothole Alert", "Approaching a " + pothole.getLevel() + " pothole!");
+                        }
+
+                        if (distance < 50) {
+                            // Remove pothole from the list once passed
+                            iterator.remove();
+                            Log.d(TAG, "Pothole passed and removed: " + pothole.getLevel());
+                        }
+                    }
+                });
+
+                // Schedule the next notification check after 5 seconds
+                handler.postDelayed(this, 5000);
             }
-        });
+        };
+
+        // Start the notification checks
+        handler.post(notificationRunnable);
     }
 
     // Hiển thị Notification
