@@ -70,13 +70,13 @@
                     android:paddingVertical="8dp"/>
                 <ScrollView
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="100dp"
                     android:layout_marginTop="10dp">
 
                     <TextView
                         android:id="@+id/potholeListTextView"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="100dp"
                         android:background="@drawable/rounded_background"
                         android:lineSpacingExtra="4dp"
                         android:padding="10dp"
