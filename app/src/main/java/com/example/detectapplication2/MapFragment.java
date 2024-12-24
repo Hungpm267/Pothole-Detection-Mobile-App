@@ -184,9 +184,17 @@ public class MapFragment extends Fragment {
 
         handlePermissions();
         loadMapScene();
+        monitorUserMovement(); // Add this line to start monitoring user movement
         return view;
     }
-
+    private void updateLocationMarker(GeoCoordinates newLocation) {
+        if (currentLocationMarker != null) {
+            mapView.getMapScene().removeMapMarker(currentLocationMarker);
+        }
+        MapImage markerImage = MapImageFactory.fromResource(getResources(), R.drawable.ic_current_location);
+        currentLocationMarker = new MapMarker(newLocation, markerImage);
+        mapView.getMapScene().addMapMarker(currentLocationMarker);
+    }
     private void handlePermissions() {
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
@@ -544,16 +552,12 @@ public class MapFragment extends Fragment {
                 if (previousLocation == null || !newLocation.equals(previousLocation)) {
                     previousLocation = newLocation;
                     currentLocation = newLocation;
-                    updatePolyline();
+                    updateLocationMarker(newLocation);
                 }
             }
         });
     }
-    private void updatePolyline() {
-        if (currentLocation != null && destinationCoordinates != null) {
-            calculateRoute(currentLocation, destinationCoordinates);
-        }
-    }
+
     private void setupPolylineHoverListener(Route route) {
         mapView.getGestures().setTapListener(touchPoint -> {
             Point2D point2D = new Point2D(touchPoint.x, touchPoint.y);
