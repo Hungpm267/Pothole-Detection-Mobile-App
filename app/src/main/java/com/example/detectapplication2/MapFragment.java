@@ -771,6 +771,8 @@ public class MapFragment extends Fragment {
         }
 
         Handler handler = new Handler(Looper.getMainLooper());
+        final long[] lastNotificationTime = {0}; // Lưu thời gian thông báo cuối cùng
+
         Runnable notificationRunnable = new Runnable() {
             @Override
             public void run() {
@@ -783,29 +785,32 @@ public class MapFragment extends Fragment {
                     GeoCoordinates currentCoordinates = new GeoCoordinates(location.getLatitude(), location.getLongitude());
                     Iterator<Pothole> iterator = potholesOnRoute.iterator();
 
+                    long currentTime = System.currentTimeMillis();
+
                     while (iterator.hasNext()) {
                         Pothole pothole = iterator.next();
                         GeoCoordinates potholeCoordinates = new GeoCoordinates(pothole.getLatitude(), pothole.getLongitude());
                         double distance = distanceBetween(currentCoordinates, potholeCoordinates);
 
-                        if (distance <= 100) {
+                        if (distance <= 100 && (currentTime - lastNotificationTime[0] >= 10000)) { // Cách nhau ít nhất 10 giây
                             showNotification("Pothole Alert", "Approaching a " + pothole.getLevel() + " pothole!");
+                            lastNotificationTime[0] = currentTime;
                         }
 
                         if (distance < 50) {
-                            // Remove pothole from the list once passed
+                            // Xóa pothole khỏi danh sách khi đã vượt qua
                             iterator.remove();
                             Log.d(TAG, "Pothole passed and removed: " + pothole.getLevel());
                         }
                     }
                 });
 
-                // Schedule the next notification check after 5 seconds
+                // Lên lịch kiểm tra tiếp theo sau 5 giây
                 handler.postDelayed(this, 5000);
             }
         };
 
-        // Start the notification checks
+        // Bắt đầu kiểm tra thông báo
         handler.post(notificationRunnable);
     }
 
@@ -828,5 +833,6 @@ public class MapFragment extends Fragment {
 
         notificationManager.notify((int) System.currentTimeMillis(), notification); // Mã định danh duy nhất
     }
+
 
 }
