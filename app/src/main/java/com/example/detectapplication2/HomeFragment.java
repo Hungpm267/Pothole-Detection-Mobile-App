@@ -56,7 +56,7 @@ public class HomeFragment extends Fragment {
 
         // Initialize views
         image1 = view.findViewById(R.id.pothehole);
-        image2 = view.findViewById(R.id.distance);
+
         imageViewchart = view.findViewById(R.id.imageViewchart);
 
         temperatureText = view.findViewById(R.id.temperature_text);
@@ -67,7 +67,6 @@ public class HomeFragment extends Fragment {
 
         // Set click listeners for images
         image1.setOnClickListener(v -> startActivity(new Intent(getActivity(), PothethonListActivity.class)));
-        image2.setOnClickListener(v -> startActivity(new Intent(getActivity(), distance.class)));
         imageViewchart.setOnClickListener(v -> startActivity(new Intent(getActivity(), PothethonListActivity.class)));
 
         mAuth = FirebaseAuth.getInstance();

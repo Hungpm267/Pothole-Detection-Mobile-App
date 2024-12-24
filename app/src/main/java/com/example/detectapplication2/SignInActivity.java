@@ -148,11 +148,9 @@ public class SignInActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null && user.isEmailVerified()) {
-
                             String uid = user.getUid();
                             updatePasswordInDatabase(uid, password);
                             Log.d("UID Authentication", "Logged-in User: " + uid);
-                            // Nếu Email đã xác thực
                             DatabaseReference reference = FirebaseDatabase.getInstance().getReference("users");
                             reference.child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
@@ -161,7 +159,7 @@ public class SignInActivity extends AppCompatActivity {
                                         String name = snapshot.child("name").getValue(String.class);
                                         String emailFromDB = snapshot.child("email").getValue(String.class);
 
-                                        Intent intent = new Intent(SignInActivity.this, MainActivity2.class);
+                                        Intent intent = new Intent(SignInActivity.this, SplashActivity.class);
                                         if (chkRememberMe.isChecked()) {
                                             SharedPreferences.Editor editor = sharedPreferences.edit();
                                             editor.putBoolean("remember", true);
@@ -186,11 +184,9 @@ public class SignInActivity extends AppCompatActivity {
                                 }
                             });
                         } else {
-                            // Nếu email chưa xác thực
                             Toast.makeText(this, "Vui lòng xác thực email trước khi đăng nhập", Toast.LENGTH_LONG).show();
                         }
                     } else {
-                        // Nếu đăng nhập thất bại
                         Toast.makeText(this, "Đăng nhập thất bại: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                         Log.e("LoginError", "Error: ", task.getException());
                     }
