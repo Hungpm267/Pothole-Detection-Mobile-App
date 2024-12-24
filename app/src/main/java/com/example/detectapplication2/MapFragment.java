@@ -659,7 +659,7 @@ public class MapFragment extends Fragment {
 
                         showWaypointsOnMap(waypoints);
                         fetchPotholesOnRoute(route); // Lọc potholes trên đường
-                        monitorPotholesOnRoute(); // Theo dõi potholes trên đường
+                        monitorPotholesOnRoute(route); // Theo dõi potholes trên đường
                     } else {
                         showToast("No route found.");
                     }
@@ -777,7 +777,7 @@ public class MapFragment extends Fragment {
     }
 
 
-    private void monitorPotholesOnRoute() {
+    private void monitorPotholesOnRoute(Route route) {
         LocationManager locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             showToast("Location permission not granted.");
@@ -806,8 +806,8 @@ public class MapFragment extends Fragment {
                         GeoCoordinates potholeCoordinates = new GeoCoordinates(pothole.getLatitude(), pothole.getLongitude());
                         double distance = distanceBetween(currentCoordinates, potholeCoordinates);
 
-                        if (distance <= 400 && (currentTime - lastNotificationTime[0] >= 5000)) { // At least 5 seconds apart
-                            showNotification("Pothole Alert", "Approaching a " + pothole.getLevel() + " pothole!" + " Distance: " + distance + "m");
+                        if (isPotholeExactlyOnRoute(route.getGeometry().vertices, potholeCoordinates) && distance <= 400 && (currentTime - lastNotificationTime[0] >= 5000)) { // At least 5 seconds apart
+                            showNotification("Pothole Alert", "Approaching a " + pothole.getLevel() + " pothole! Distance: " + distance + "m");
                             lastNotificationTime[0] = currentTime;
                         }
 
