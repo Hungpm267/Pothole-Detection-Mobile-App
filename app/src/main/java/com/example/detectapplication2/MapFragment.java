@@ -339,6 +339,20 @@ public class MapFragment extends Fragment {
             return;
         }
 
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(location -> {
+                    if (location != null) {
+                        currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
+                        moveCameraToCurrentLocation();
+                    } else {
+                        showToast("Unable to retrieve current location.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching location: " + e.getMessage());
+                    showToast("Error fetching location.");
+                });
+
         // Get the latest GPS location
         Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
@@ -792,8 +806,8 @@ public class MapFragment extends Fragment {
                         GeoCoordinates potholeCoordinates = new GeoCoordinates(pothole.getLatitude(), pothole.getLongitude());
                         double distance = distanceBetween(currentCoordinates, potholeCoordinates);
 
-                        if (distance <= 100 && (currentTime - lastNotificationTime[0] >= 10000)) { // At least 10 seconds apart
-                            showNotification("Pothole Alert", "Approaching a " + pothole.getLevel() + " pothole!");
+                        if (distance <= 400 && (currentTime - lastNotificationTime[0] >= 5000)) { // At least 5 seconds apart
+                            showNotification("Pothole Alert", "Approaching a " + pothole.getLevel() + " pothole!" + " Distance: " + distance + "m");
                             lastNotificationTime[0] = currentTime;
                         }
 
