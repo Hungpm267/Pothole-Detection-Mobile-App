@@ -771,7 +771,7 @@ public class MapFragment extends Fragment {
         }
 
         Handler handler = new Handler(Looper.getMainLooper());
-        final long[] lastNotificationTime = {0}; // Lưu thời gian thông báo cuối cùng
+        final long[] lastNotificationTime = {0}; // Store the last notification time
 
         Runnable notificationRunnable = new Runnable() {
             @Override
@@ -792,47 +792,46 @@ public class MapFragment extends Fragment {
                         GeoCoordinates potholeCoordinates = new GeoCoordinates(pothole.getLatitude(), pothole.getLongitude());
                         double distance = distanceBetween(currentCoordinates, potholeCoordinates);
 
-                        if (distance <= 100 && (currentTime - lastNotificationTime[0] >= 10000)) { // Cách nhau ít nhất 10 giây
+                        if (distance <= 100 && (currentTime - lastNotificationTime[0] >= 10000)) { // At least 10 seconds apart
                             showNotification("Pothole Alert", "Approaching a " + pothole.getLevel() + " pothole!");
                             lastNotificationTime[0] = currentTime;
                         }
 
                         if (distance < 50) {
-                            // Xóa pothole khỏi danh sách khi đã vượt qua
+                            // Remove pothole from the list once passed
                             iterator.remove();
                             Log.d(TAG, "Pothole passed and removed: " + pothole.getLevel());
                         }
                     }
                 });
 
-                // Lên lịch kiểm tra tiếp theo sau 5 giây
+                // Schedule the next check in 5 seconds
                 handler.postDelayed(this, 5000);
             }
         };
 
-        // Bắt đầu kiểm tra thông báo
+        // Start checking for notifications
         handler.post(notificationRunnable);
     }
 
-    // Hiển thị Notification
+    // Display Notification
     private void showNotification(String title, String message) {
         NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
 
-        // Tạo Notification Channel (cho Android 8.0 trở lên)
+        // Create Notification Channel (for Android 8.0 and above)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel("POTHOLE_ALERTS", "Pothole Alerts", NotificationManager.IMPORTANCE_HIGH);
             notificationManager.createNotificationChannel(channel);
         }
 
         Notification notification = new NotificationCompat.Builder(getContext(), "POTHOLE_ALERTS")
-                .setSmallIcon(R.drawable.ic_warning) // Đặt icon
+                .setSmallIcon(R.drawable.ic_warning) // Set icon
                 .setContentTitle(title)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .build();
 
-        notificationManager.notify((int) System.currentTimeMillis(), notification); // Mã định danh duy nhất
+        notificationManager.notify((int) System.currentTimeMillis(), notification); // Unique identifier
     }
-
 
 }
