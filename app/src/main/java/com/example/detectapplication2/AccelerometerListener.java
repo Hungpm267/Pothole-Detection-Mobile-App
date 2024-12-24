@@ -38,10 +38,10 @@ public class AccelerometerListener implements SensorEventListener {
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
 
-    private static final double THRESHOLD_LIGHT = 20.0;
-    private static final double THRESHOLD_MEDIUM = 30.0;
-    private static final double THRESHOLD_HEAVY = 40.0;
-    private static final double MOVEMENT_THRESHOLD = 15.0; // Ngưỡng chuyển động bắt đầu
+    private static final double THRESHOLD_LIGHT = 30.0;
+    private static final double THRESHOLD_MEDIUM = 40.0;
+    private static final double THRESHOLD_HEAVY = 50.0;
+    private static final double MOVEMENT_THRESHOLD = 20.0; // Ngưỡng chuyển động bắt đầu
 
     private boolean dialogShown = false; // Kiểm soát việc hiển thị dialog
     private boolean isMoving = false; // Kiểm tra xem điện thoại có đang di chuyển không
