@@ -210,7 +210,6 @@ public class MapFragment extends Fragment {
         });
     }
 
-
     private void performSearch(String query) {
         new Thread(() -> {
             try {
