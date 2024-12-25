@@ -69,7 +69,7 @@
                     android:fontFamily="sans-serif-medium"/>
 
                 <TextView
-                    android:id="@+id/tv_notification"
+                    android:id="@+id/tv_mynotification"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="80dp"
@@ -199,7 +199,7 @@
             </androidx.cardview.widget.CardView>
             <View
                 android:layout_width="match_parent"
-                android:layout_height="1000dp"/>
+                android:layout_height="20dp"/>
         </LinearLayout>
         </ScrollView>
     </androidx.cardview.widget.CardView>

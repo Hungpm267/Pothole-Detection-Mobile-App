@@ -7,21 +7,21 @@
     tools:context=".HomeFragment"
     android:background="#1a7a1a">
 
-    <androidx.core.widget.NestedScrollView
+    <LinearLayout
         android:id="@+id/contentWrapper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingBottom="20dp"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
-
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="15dp">
 
-<!--            hiển thị tên username -->
+            <!--            hiển thị tên username -->
             <TextView
                 android:id="@+id/username"
                 android:layout_width="wrap_content"
@@ -35,7 +35,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-<!--            hiển thị số lượng pothole và distance đi đc-->
+            <!--            hiển thị số lượng pothole và distance đi đc-->
             <androidx.cardview.widget.CardView
                 android:id="@+id/statsContainer"
                 android:layout_width="0dp"
@@ -180,8 +180,9 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-<!--            hiển thị chart visualize-->
+            <!--            hiển thị chart visualize-->
             <androidx.cardview.widget.CardView
+                android:id="@+id/chartsection"
                 android:layout_width="match_parent"
                 android:layout_height="220dp"
                 app:cardCornerRadius="15dp"
@@ -191,25 +192,22 @@
                 app:layout_constraintStart_toStartOf="parent">
 
 
+
                 <ScrollView
                     android:layout_width="200dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="2"
-                    android:layout_marginTop="10dp">
-
+                    android:background="#f5f5f5">
                     <TextView
                         android:id="@+id/multiLineTextView"
                         android:layout_width="200dp"
                         android:layout_height="match_parent"
-                        android:background="@drawable/rounded_background"
                         android:lineSpacingExtra="4dp"
                         android:paddingStart="15dp"
                         android:paddingTop="10dp"
                         android:paddingEnd="15dp"
                         android:paddingBottom="10dp"
-                        android:text="Pothole detected: \nThis is line 2\nThis is line 3\nThis is line 4\nThis is line 5\nThis is line 6\nThis is line 7\nThis is line 8\nThis is line 9\nThis is line 10\nThis is line 11\nThis is line 12\nThis is line 13\nThis is line 14\nThis is line 15"
                         android:textColor="#333"
-                        android:textSize="18sp" />
+                        android:textSize="18sp"/>
                 </ScrollView>
 
                 <ImageView
@@ -227,6 +225,7 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-    </androidx.core.widget.NestedScrollView>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

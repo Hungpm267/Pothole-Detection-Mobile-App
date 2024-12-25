@@ -14,7 +14,7 @@
         android:layout_alignParentTop="true"
         android:layout_width="match_parent"
         android:layout_height="125dp"
-        app:cardCornerRadius="28dp"
+        app:cardCornerRadius="28dp" 
         app:cardBackgroundColor="#1a7a1a"
         android:layout_marginTop="-20dp">
 
@@ -70,8 +70,7 @@
         <ImageView
             android:id="@+id/icon_search"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:tint="#808080" />
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
     <!-- FAQ Content -->

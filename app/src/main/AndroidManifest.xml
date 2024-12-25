@@ -42,6 +42,11 @@
         <activity
             android:name=".SignInActivity"
             android:exported="false" />
+        <activity android:name=".Notification" />
+        <activity android:name=".HelpAndSupport" />
+        <activity android:name=".Security" />
+        <activity android:name=".change_password" />
+        <activity android:name=".ReportProblem" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

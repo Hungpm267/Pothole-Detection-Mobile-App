@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,7 +57,7 @@ public class SettingFragment extends Fragment {
         tv_policies = view.findViewById(R.id.tv_policies);
         tv_security = view.findViewById(R.id.tv_security);
         tv_reporting = view.findViewById(R.id.report_a_problem);
-        tv_notification = view.findViewById(R.id.tv_notification);
+        tv_notification = view.findViewById(R.id.tv_mynotification);
         helpandsupports = view.findViewById(R.id.help_and_support);
 
         txt_logout.setOnClickListener(v -> {
@@ -97,7 +98,9 @@ public class SettingFragment extends Fragment {
         });
 
         tv_notification.setOnClickListener(v -> {
-            Intent myintent = new Intent(getActivity(), Notification.class);
+            Log.d("SettingFragment", "Notification TextView clicked");
+            Intent myintent = new Intent(this.getActivity(), Notification.class);
+            Log.d("SettingFragment", "Notification TextView da duoc an");
             startActivity(myintent);
         });
 
