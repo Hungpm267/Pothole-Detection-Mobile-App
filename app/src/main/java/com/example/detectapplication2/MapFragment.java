@@ -111,6 +111,7 @@ public class MapFragment extends Fragment {
     private List<GeoCoordinates> searchResultsCoordinates = new ArrayList<>();
 
     private MapView mapView;
+    private GeoCoordinates previousLocation = null;
     private LocationManager locationManager;
     private MapMarker currentLocationMarker;
     private FusedLocationProviderClient fusedLocationClient;
@@ -183,9 +184,17 @@ public class MapFragment extends Fragment {
 
         handlePermissions();
         loadMapScene();
+        monitorUserMovement(); // Add this line to start monitoring user movement
         return view;
     }
-
+    private void updateLocationMarker(GeoCoordinates newLocation) {
+        if (currentLocationMarker != null) {
+            mapView.getMapScene().removeMapMarker(currentLocationMarker);
+        }
+        MapImage markerImage = MapImageFactory.fromResource(getResources(), R.drawable.ic_current_location);
+        currentLocationMarker = new MapMarker(newLocation, markerImage);
+        mapView.getMapScene().addMapMarker(currentLocationMarker);
+    }
     private void handlePermissions() {
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
@@ -208,7 +217,6 @@ public class MapFragment extends Fragment {
             }
         });
     }
-
 
     private void performSearch(String query) {
         new Thread(() -> {
@@ -331,6 +339,20 @@ public class MapFragment extends Fragment {
             return;
         }
 
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(location -> {
+                    if (location != null) {
+                        currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
+                        moveCameraToCurrentLocation();
+                    } else {
+                        showToast("Unable to retrieve current location.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching location: " + e.getMessage());
+                    showToast("Error fetching location.");
+                });
+
         // Get the latest GPS location
         Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
@@ -345,7 +367,7 @@ public class MapFragment extends Fragment {
                     // Move camera to current location
                     currentLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
                     moveCameraToCurrentLocation();
-                    updatePolylineAndMarker();
+
                     locationManager.removeUpdates(this); // Stop listening
                 }
             });
@@ -367,22 +389,7 @@ public class MapFragment extends Fragment {
             mapView.getMapScene().addMapMarker(currentLocationMarker);
         }
     }
-    private void updatePolylineAndMarker() {
-        if (currentLocation != null && destinationCoordinates != null) {
-            // Clear old polyline and marker
-            clearPolylines();
-            if (currentLocationMarker != null) {
-                mapView.getMapScene().removeMapMarker(currentLocationMarker);
-            }
 
-            // Add new polyline
-            calculateRoute(currentLocation, destinationCoordinates);
-
-            // Add new marker at the current location|
-
-
-        }
-    }
     private void updateMapLocation(GeoCoordinates geoCoordinates) {
         if (geoCoordinates == null || mapView == null) {
             return;
@@ -500,12 +507,21 @@ public class MapFragment extends Fragment {
         int lengthInMeters = route.getLengthInMeters();
 
     }
-
+    private void clearRoute() {
+        for (MapPolyline mapPolyline : mapPolylines) {
+            mapView.getMapScene().removeMapPolyline(mapPolyline);
+        }
+        mapPolylines.clear();
+    }
     private void showRouteOnMap(Route route) {
+        clearRoute();
+
+        // Display route as polyline
         GeoPolyline routeGeoPolyline = route.getGeometry();
         float widthInPixels = 20;
         Color polylineColor = new Color(0, (float) 0.56, (float) 0.54, (float) 0.63);
         MapPolyline routeMapPolyline = null;
+
         try {
             routeMapPolyline = new MapPolyline(routeGeoPolyline, new MapPolyline.SolidRepresentation(
                     new MapMeasureDependentRenderSize(RenderSize.Unit.PIXELS, widthInPixels),
@@ -516,16 +532,9 @@ public class MapFragment extends Fragment {
         } catch (MapMeasureDependentRenderSize.InstantiationException e) {
             Log.e("MapMeasureDependentRenderSize Exception:", e.error.name());
         }
+
         mapView.getMapScene().addMapPolyline(routeMapPolyline);
         mapPolylines.add(routeMapPolyline);
-
-        // Set up the polyline hover listener
-        setupPolylineHoverListener(route);
-
-        List<Section> sections = route.getSections();
-        for (Section section : sections) {
-            logManeuverInstructions(section);
-        }
     }
 
     private void showWaypointsOnMap(List<Waypoint> waypoints) {
@@ -541,15 +550,54 @@ public class MapFragment extends Fragment {
             }
         }
     }
+
+    private void monitorUserMovement() {
+        LocationManager locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            showToast("Location permission not granted.");
+            return;
+        }
+
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, new LocationListener() {
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                GeoCoordinates newLocation = new GeoCoordinates(location.getLatitude(), location.getLongitude());
+                if (previousLocation == null || !newLocation.equals(previousLocation)) {
+                    previousLocation = newLocation;
+                    currentLocation = newLocation;
+                    updateLocationMarker(newLocation);
+                }
+            }
+        });
+    }
+
     private void setupPolylineHoverListener(Route route) {
         mapView.getGestures().setTapListener(touchPoint -> {
             Point2D point2D = new Point2D(touchPoint.x, touchPoint.y);
             GeoCoordinates tappedCoordinates = mapView.viewToGeoCoordinates(point2D);
             if (tappedCoordinates != null && isPointOnPolyline(tappedCoordinates, route.getGeometry().vertices)) {
-                long estimatedTravelTimeInSeconds = route.getDuration().getSeconds();
-                long estimatedTravelTimeInMinutes = estimatedTravelTimeInSeconds / 60;
-                String estimatedTimeText = "Thời gian dự kiến: " + estimatedTravelTimeInMinutes + " mins";
-                showToast(estimatedTimeText);
+                // Recalculate the route from the current location to the destination
+                if (currentLocation != null && destinationCoordinates != null) {
+                    List<Waypoint> waypoints = new ArrayList<>();
+                    waypoints.add(new Waypoint(currentLocation));
+                    waypoints.add(new Waypoint(destinationCoordinates));
+
+                    routingEngine.calculateRoute(
+                            waypoints,
+                            getCarOptions(),
+                            (routingError, routes) -> {
+                                if (routingError == null) {
+                                    Route newRoute = routes.get(0);
+                                    long estimatedTravelTimeInSeconds = newRoute.getDuration().getSeconds();
+                                    long estimatedTravelTimeInMinutes = estimatedTravelTimeInSeconds / 60;
+                                    String estimatedTimeText = "Thời gian dự kiến: " + estimatedTravelTimeInMinutes + " mins";
+                                    showToast(estimatedTimeText);
+                                } else {
+                                    showToast("No route found.");
+                                }
+                            }
+                    );
+                }
             }
         });
     }
@@ -607,14 +655,11 @@ public class MapFragment extends Fragment {
                         logRouteRailwayCrossingDetails(route);
                         logRouteSectionDetails(route);
                         logTollDetails(route);
-                        // hien thi thoi gian du kien
-                    //  long estimatedTravelTimeInSeconds = route.getDuration().getSeconds();
-                  //    long estimatedTravelTimeInMinutes = estimatedTravelTimeInSeconds / 60;
-                    //  estimatedTimeTextView.setText("Thời gian dự kiến: " + estimatedTravelTimeInMinutes + " mins");
-                    //  estimatedTimeTextView.setVisibility(View.VISIBLE)
+                        setupPolylineHoverListener(route);
+
                         showWaypointsOnMap(waypoints);
                         fetchPotholesOnRoute(route); // Lọc potholes trên đường
-                        monitorPotholesOnRoute(); // Theo dõi potholes trên đường
+                        monitorPotholesOnRoute(route); // Theo dõi potholes trên đường
                     } else {
                         showToast("No route found.");
                     }
@@ -732,7 +777,7 @@ public class MapFragment extends Fragment {
     }
 
 
-    private void monitorPotholesOnRoute() {
+    private void monitorPotholesOnRoute(Route route) {
         LocationManager locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             showToast("Location permission not granted.");
@@ -740,6 +785,8 @@ public class MapFragment extends Fragment {
         }
 
         Handler handler = new Handler(Looper.getMainLooper());
+        final long[] lastNotificationTime = {0}; // Store the last notification time
+
         Runnable notificationRunnable = new Runnable() {
             @Override
             public void run() {
@@ -752,13 +799,16 @@ public class MapFragment extends Fragment {
                     GeoCoordinates currentCoordinates = new GeoCoordinates(location.getLatitude(), location.getLongitude());
                     Iterator<Pothole> iterator = potholesOnRoute.iterator();
 
+                    long currentTime = System.currentTimeMillis();
+
                     while (iterator.hasNext()) {
                         Pothole pothole = iterator.next();
                         GeoCoordinates potholeCoordinates = new GeoCoordinates(pothole.getLatitude(), pothole.getLongitude());
                         double distance = distanceBetween(currentCoordinates, potholeCoordinates);
 
-                        if (distance <= 100) {
-                            showNotification("Pothole Alert", "Approaching a " + pothole.getLevel() + " pothole!");
+                        if (isPotholeExactlyOnRoute(route.getGeometry().vertices, potholeCoordinates) && distance <= 400 && (currentTime - lastNotificationTime[0] >= 5000)) { // At least 5 seconds apart
+                            showNotification("Pothole Alert", "Approaching a " + pothole.getLevel() + " pothole! Distance: " + distance + "m");
+                            lastNotificationTime[0] = currentTime;
                         }
 
                         if (distance < 50) {
@@ -769,33 +819,33 @@ public class MapFragment extends Fragment {
                     }
                 });
 
-                // Schedule the next notification check after 5 seconds
+                // Schedule the next check in 5 seconds
                 handler.postDelayed(this, 5000);
             }
         };
 
-        // Start the notification checks
+        // Start checking for notifications
         handler.post(notificationRunnable);
     }
 
-    // Hiển thị Notification
+    // Display Notification
     private void showNotification(String title, String message) {
         NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
 
-        // Tạo Notification Channel (cho Android 8.0 trở lên)
+        // Create Notification Channel (for Android 8.0 and above)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel("POTHOLE_ALERTS", "Pothole Alerts", NotificationManager.IMPORTANCE_HIGH);
             notificationManager.createNotificationChannel(channel);
         }
 
         Notification notification = new NotificationCompat.Builder(getContext(), "POTHOLE_ALERTS")
-                .setSmallIcon(R.drawable.ic_warning) // Đặt icon
+                .setSmallIcon(R.drawable.ic_warning) // Set icon
                 .setContentTitle(title)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .build();
 
-        notificationManager.notify((int) System.currentTimeMillis(), notification); // Mã định danh duy nhất
+        notificationManager.notify((int) System.currentTimeMillis(), notification); // Unique identifier
     }
 
 }
