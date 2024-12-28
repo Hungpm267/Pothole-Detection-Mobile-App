@@ -8,8 +8,17 @@
     <com.here.sdk.mapview.MapView
         android:id="@+id/map_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
 
+    </com.here.sdk.mapview.MapView>
+
+    <Button
+        android:id="@+id/setroute"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|bottom"
+        android:layout_marginBottom="60dp"
+        android:text="set route" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -48,6 +57,7 @@
                     android:layout_marginStart="5dp"
                     android:layout_height="39dp"
                     android:text="Search" />
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

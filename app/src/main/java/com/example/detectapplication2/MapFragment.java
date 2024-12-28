@@ -109,7 +109,9 @@ public class MapFragment extends Fragment {
     private ListView searchResultsList;
     private List<String> searchResultsTitles = new ArrayList<>();
     private List<GeoCoordinates> searchResultsCoordinates = new ArrayList<>();
-
+    private MapMarker userSelectedMarker;
+    private GeoCoordinates userSelectedCoordinates;
+    private Button setRouteButton;
     private MapView mapView;
     private GeoCoordinates previousLocation = null;
     private LocationManager locationManager;
@@ -155,6 +157,8 @@ public class MapFragment extends Fragment {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(getActivity());
 
+        setRouteButton = view.findViewById(R.id.setroute);
+        setRouteButton.setVisibility(View.GONE);
         mapView = view.findViewById(R.id.map_view);
         mapView.onCreate(savedInstanceState);
 
@@ -162,7 +166,14 @@ public class MapFragment extends Fragment {
         Button searchButton = view.findViewById(R.id.search_button);
         searchResultsList = view.findViewById(R.id.search_results_list);
         estimatedTimeTextView = view.findViewById(R.id.estimated_time);
-
+        mapView.getGestures().setTapListener(touchPoint -> {
+            Point2D point2D = new Point2D(touchPoint.x, touchPoint.y);
+            GeoCoordinates tappedCoordinates = mapView.viewToGeoCoordinates(point2D);
+            if (tappedCoordinates != null) {
+                addOrUpdateUserSelectedMarker(tappedCoordinates);
+                setRouteButton.setVisibility(View.VISIBLE); // Show the button when a location is selected
+            }
+        });
         searchButton.setOnClickListener(v -> {
             String query = locationSearch.getText().toString().trim();
             if (!query.isEmpty()) {
@@ -172,6 +183,22 @@ public class MapFragment extends Fragment {
             }
         });
 
+
+        setRouteButton.setOnClickListener(v -> {
+
+            searchResultsList.setVisibility(View.GONE);
+            clearPolylines();
+            clearSearchMarkers();
+
+            if (currentLocation != null && userSelectedCoordinates != null) {
+                calculateRoute(currentLocation, userSelectedCoordinates);
+            } else {
+                Toast.makeText(getContext(), "Current location or selected location is null.", Toast.LENGTH_SHORT).show();
+            }
+
+
+        });
+        //Khi người dùng chọn một kết quả trong danh sách hiển thị
         searchResultsList.setOnItemClickListener((parent, view1, position, id) -> {
             GeoCoordinates selectedCoordinates = searchResultsCoordinates.get(position);
             destinationCoordinates = selectedCoordinates;
@@ -179,13 +206,22 @@ public class MapFragment extends Fragment {
             searchResultsList.setVisibility(View.GONE);
             clearPolylines();
             clearSearchMarkers();
-            calculateRoute(currentLocation, selectedCoordinates);
         });
 
         handlePermissions();
         loadMapScene();
         monitorUserMovement(); // Add this line to start monitoring user movement
         return view;
+    }
+    private void addOrUpdateUserSelectedMarker(GeoCoordinates coordinates) {
+        if (userSelectedMarker != null) {
+            mapView.getMapScene().removeMapMarker(userSelectedMarker);
+        }
+        clearPolylines(); // Clear old polylines
+        MapImage markerImage = MapImageFactory.fromResource(getResources(), R.drawable.ic_current_location);
+        userSelectedMarker = new MapMarker(coordinates, markerImage);
+        mapView.getMapScene().addMapMarker(userSelectedMarker);
+        userSelectedCoordinates = coordinates;
     }
     private void updateLocationMarker(GeoCoordinates newLocation) {
         if (currentLocationMarker != null) {
@@ -221,12 +257,6 @@ public class MapFragment extends Fragment {
     private void performSearch(String query) {
         new Thread(() -> {
             try {
-                // Clear old markers and polylines
-                getActivity().runOnUiThread(() -> {
-                    clearSearchMarkers();
-                    clearPolylines();
-                });
-
                 double Lat = currentLocation.latitude;
                 double Lng = currentLocation.longitude;
                 String encodedQuery = URLEncoder.encode(query, "UTF-8");
@@ -267,6 +297,7 @@ public class MapFragment extends Fragment {
             }
         }).start();
     }
+
 
 
     private void showToast(String message) {
@@ -513,6 +544,7 @@ public class MapFragment extends Fragment {
         }
         mapPolylines.clear();
     }
+
     private void showRouteOnMap(Route route) {
         clearRoute();
 
