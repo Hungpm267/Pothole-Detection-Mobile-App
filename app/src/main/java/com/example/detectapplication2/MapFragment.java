@@ -200,14 +200,7 @@ public class MapFragment extends Fragment {
         });
         //Khi người dùng chọn một kết quả trong danh sách hiển thị
         searchResultsList.setOnItemClickListener((parent, view1, position, id) -> {
-            getActivity().runOnUiThread(() -> {
-                // Clear the user selected marker
-                if (userSelectedMarker != null) {
-                    mapView.getMapScene().removeMapMarker(userSelectedMarker);
-                    userSelectedMarker = null;
-                }
-                userSelectedCoordinates = null; // Clear the user selected coordinates
-            });
+          setRouteButton.setVisibility(View.GONE); // Show the button when a location is selected
             GeoCoordinates selectedCoordinates = searchResultsCoordinates.get(position);
             mapView.getGestures().setTapListener(touchPoint -> {
                 Point2D point2D = new Point2D(touchPoint.x, touchPoint.y);
