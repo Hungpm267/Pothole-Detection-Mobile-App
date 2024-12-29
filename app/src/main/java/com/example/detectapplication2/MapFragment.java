@@ -183,7 +183,7 @@ public class MapFragment extends Fragment {
             }
         });
 
-
+//ghide
         setRouteButton.setOnClickListener(v -> {
 
             searchResultsList.setVisibility(View.GONE);
