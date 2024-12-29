@@ -206,6 +206,7 @@ public class MapFragment extends Fragment {
             searchResultsList.setVisibility(View.GONE);
             clearPolylines();
             clearSearchMarkers();
+            addOrUpdateUserSelectedMarker(selectedCoordinates);
         });
 
         handlePermissions();
